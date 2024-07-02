@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>パターン生成</title>
+    <title>パターン画像生成サイト</title>
     <meta name="description" content="">
     <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="./css/style.css">
@@ -11,16 +11,72 @@
 </head>
 
 <body>
+    <form>
+        <table>
+            <tr>
+                <th class="hissu"><label>横画面数</label></th>
+                <td><input id="screen-num-x" type="number" value="4"></td>
+            </tr>
+            <tr>
+                <th class="hissu"><label>縦画面数</label></th>
+                <td><input id="screen-num-y" type="number" value="1"></td>
+            </tr>
+            <tr>
+                <th class="hissu"><label>全体横幅</label></th>
+                <td><input id="all-width" type="number" value="6858"></td>
+            </tr>
+            <tr>
+                <th class="hissu"><label>全体縦幅</label></th>
+                <td><input id="all-height" type="number" value="1200"></td>
+            </tr>
+            <tr>
+                <th class="hissu"><label>1画面の横幅</label></th>
+                <td><input id="screen-width" type="number" value="1920"></td>
+            </tr>
+            <tr>
+                <th class="hissu"><label>1画面の縦幅</label></th>
+                <td><input id="screen-height" type="number" value="1200"> </td>
+            </tr>
+            <tr>
+                <th class="hissu"><label>左マスク</label></th>
+                <td><input id="mask-left" type="number" value="0"> </td>
+            </tr>
+            <tr>
+                <th class="hissu"><label>右マスク</label></th>
+                <td><input id="mask-right" type="number" value="0"> </td>
+            </tr>
+            <tr>
+                <th class="hissu"><label>上マスク</label></th>
+                <td><input id="mask-top" type="number" value="0"> </td>
+            </tr>
+            <tr>
+                <th class="hissu"><label>下マスク</label></th>
+                <td><input id="mask-bottom" type="number" value="0"> </td>
+            </tr>
+        </table>
+        <!--
+        <div class="buttonwrap">
+        </div>
+        -->
+        <input id="btn-draw" type="button" value="パターン画像生成">
 
-    <input id="btn-draw" class="styled" type="button" value="パターン画像生成" />
+    </form> 
+
+    <!--
+    <input id="btn-draw" class="" type="button" value="パターン画像生成" />
+    -->
     <hr>
-    <input id="btn1" class="styled" type="button" value="全体 ダウンロード" />
-    <input id="btn2" class="styled" type="button" value="ダウンロード2" />
+    <select id="select" style="display:none;">
+        <option id="opt_0">全体</option>
+        <option>プロジェクター1</option>
+    </select>
+    <input id="btn1" class="" type="button" value="ダウンロード" />
+    <br>
     <div>
-        <canvas class="canvas" width="1920" height="1200">
+        <canvas id="canvas" class="canvas" width="10" height="10" style="display:none;">
+        </canvas>
+        <canvas id="canvas2" class="canvas" width="10" height="10">
         </canvas>
     </div>
-    
-
 </body>
 </html>
