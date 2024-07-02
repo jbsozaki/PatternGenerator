@@ -15,43 +15,43 @@
         <table>
             <tr>
                 <th class="hissu"><label>横画面数</label></th>
-                <td><input id="screen-num-x" type="number" value="4"></td>
+                <td><input id="screen-num-x" type="number" value="4" min="1"></td>
             </tr>
             <tr>
                 <th class="hissu"><label>縦画面数</label></th>
-                <td><input id="screen-num-y" type="number" value="1"></td>
+                <td><input id="screen-num-y" type="number" value="1" min="1"></td>
             </tr>
             <tr>
                 <th class="hissu"><label>全体横幅</label></th>
-                <td><input id="all-width" type="number" value="6858"></td>
+                <td><input id="all-width" type="number" value="6858" min="1"></td>
             </tr>
             <tr>
                 <th class="hissu"><label>全体縦幅</label></th>
-                <td><input id="all-height" type="number" value="1200"></td>
+                <td><input id="all-height" type="number" value="1200" min="1"></td>
             </tr>
             <tr>
                 <th class="hissu"><label>1画面の横幅</label></th>
-                <td><input id="screen-width" type="number" value="1920"></td>
+                <td><input id="screen-width" type="number" value="1920" min="1"></td>
             </tr>
             <tr>
                 <th class="hissu"><label>1画面の縦幅</label></th>
-                <td><input id="screen-height" type="number" value="1200"> </td>
+                <td><input id="screen-height" type="number" value="1200" min="1"> </td>
             </tr>
             <tr>
                 <th class="hissu"><label>左マスク</label></th>
-                <td><input id="mask-left" type="number" value="0"> </td>
+                <td><input id="mask-left" type="number" value="0" min="0"> </td>
             </tr>
             <tr>
                 <th class="hissu"><label>右マスク</label></th>
-                <td><input id="mask-right" type="number" value="0"> </td>
+                <td><input id="mask-right" type="number" value="0" min="0"> </td>
             </tr>
             <tr>
                 <th class="hissu"><label>上マスク</label></th>
-                <td><input id="mask-top" type="number" value="0"> </td>
+                <td><input id="mask-top" type="number" value="0" min="0"> </td>
             </tr>
             <tr>
                 <th class="hissu"><label>下マスク</label></th>
-                <td><input id="mask-bottom" type="number" value="0"> </td>
+                <td><input id="mask-bottom" type="number" value="0" min="0"> </td>
             </tr>
         </table>
         <!--
@@ -70,7 +70,7 @@
         <option id="opt_0">全体</option>
         <option>プロジェクター1</option>
     </select>
-    <input id="btn1" class="" type="button" value="ダウンロード" />
+    <input id="btn1" class="" type="button" value="ダウンロード"  style="display:none;"/>
     <br>
     <div>
         <canvas id="canvas" class="canvas" width="10" height="10" style="display:none;">

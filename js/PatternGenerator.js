@@ -50,6 +50,10 @@ function clickDrawButton() {
 
     // select
     SetSelectOption();
+
+    // download button enable
+    let elemBtn = document.querySelector('#btn1'); // Canvasの取得
+    elemBtn.style.display = "block";
 }
 
 // Download ボタンクリック
@@ -86,6 +90,7 @@ function SetSelectOption() {
     }
     elem.innerHTML = strHtml;
     elem.style.display = "block";
+    
 }
 
 //------------------------------------------------------------------
