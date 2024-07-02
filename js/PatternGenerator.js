@@ -17,7 +17,7 @@ let m_nMaskRight;
 let m_nMaskTop;
 let m_nMaskBottom;
 
-const COLOR_TABLE = ["red", "blue", "green"];
+const COLOR_TABLE = ["red", "blue", "green", "fuchsia", "teal", "lime",  "olive"];
 //------------------------------------------------------------------
 // Onload
 window.onload = () => {
