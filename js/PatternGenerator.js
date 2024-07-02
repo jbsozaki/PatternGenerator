@@ -17,7 +17,7 @@ let m_nMaskRight;
 let m_nMaskTop;
 let m_nMaskBottom;
 
-const COLOR_TABLE = ["red", "blue", "green", "fuchsia", "teal", "lime",  "olive"];
+const COLOR_TABLE = ["red", "blue", "green", "fuchsia", "teal", "lime", "olive"];
 //------------------------------------------------------------------
 // Onload
 window.onload = () => {
@@ -110,13 +110,18 @@ function GetParameters() {
     m_nMaskBottom = GetElementValue("mask-bottom");
     m_nBrandingWidth = 0;
     m_nBrandingHeight = 0;
-    if (1 < m_nScreenNumX)
-    {
+    if (1 < m_nScreenNumX) {
         m_nBrandingWidth = (m_nWidth * m_nScreenNumX - m_nAllWidth) / (m_nScreenNumX - 1);
+        if(m_nBrandingWidth < 0) {
+            m_nBrandingWidth = 0;
+        }
     }
     if (1 < m_nScreenNumY)
     {
         m_nBrandingHeight = (m_nHeight * m_nScreenNumY - m_nAllHeight) / (m_nScreenNumY - 1);
+        if(m_nBrandingHeight < 0 ) {
+            m_nBrandingHeight = 0;
+        }
     }
 }
 
@@ -169,6 +174,7 @@ function DrawPattern(canvas, dbRate) {
             let nPosY = GetPositionY(y);
 
             context.strokeStyle = COLOR_TABLE[nColorIndex];
+            //console.log("x:" + nPosX + ", y:" + nPosY);
             context.strokeRect(nPosX * dbRate, nPosY * dbRate, m_nWidth * dbRate, m_nHeight * dbRate);
             context.strokeRect(nPosX * dbRate, nPosY * dbRate, m_nWidth / 2 * dbRate, m_nHeight * dbRate);
 
@@ -191,11 +197,7 @@ function GetPositionX(nXIndex) {
     if (m_nScreenNumX * m_nWidth < m_nAllWidth) {
         let nDiff = 0;
         nDiff = (m_nAllWidth - m_nScreenNumX * m_nWidth) / 2;
-        if (nXIndex <= m_nScreenNumX / 2) {
-            nPosX = m_nWidth * nXIndex - m_nBrandingWidth * nXIndex + nDiff;
-        } else {
-            nPosX = m_nHeight * nXIndex - m_nBrandingWidth * nXIndex - nDiff;
-        }
+        nPosX = m_nWidth * nXIndex - m_nBrandingWidth * nXIndex + nDiff;
     } else {
         if (nXIndex == m_nScreenNumX - 1) {
             nPosX = m_nAllWidth - m_nWidth;
@@ -211,11 +213,7 @@ function GetPositionY(nYIndex) {
     if (m_nScreenNumY * m_nHeight < m_nAllHeight) {
         let nDiff = 0;
         nDiff = (m_nAllHeight - m_nScreenNumY * m_nHeight) / 2;
-        if (nYIndex <= m_nScreenNumY / 2) {
-            nPosY = m_nHeight * nYIndex - m_nBrandingHeight * nYIndex + nDiff;
-        } else {
-            nPosY = m_nHeight * nYIndex - m_nBrandingHeight * nYIndex - nDiff;
-        }
+        nPosY = m_nHeight * nYIndex - m_nBrandingHeight * nYIndex + nDiff;
     } else {
         if (nYIndex == m_nScreenNumY - 1) {
             nPosY = m_nAllHeight - m_nHeight;
