@@ -47,10 +47,9 @@ form th{
     width: 8em;
 }
 .hissu,.ninni{
-    /*padding-right: 4em;*/
+    padding-right: 4em;
     position: relative;
 }
-/*
 .hissu::after,.ninni::after{
     content: "必須";
     display: inline-block;
@@ -68,7 +67,6 @@ form th{
     background: #d2e5ff;
     color: #333;
 }
-    */
 form input[type="text"],form textarea{
     background: #f2f2f2;
     border: 1px solid #999;

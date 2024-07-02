@@ -13,6 +13,7 @@
 <body>
     <form>
         <table>
+            <!--ファイルの読み込み　拡張子をPNG, JPEGに設定-->
             <tr>
                 <th class="hissu"><label>横画面数</label></th>
                 <td><input id="screen-num-x" type="number" value="4" min="1"></td>
@@ -52,6 +53,10 @@
             <tr>
                 <th class="hissu"><label>下マスク</label></th>
                 <td><input id="mask-bottom" type="number" value="0" min="0"> </td>
+            </tr>
+            <tr>
+                <th class="ninni"><label>背景画像</label></th>
+                <td><input type="file" id="selectFile" accept=".png,.jpeg"></td>
             </tr>
         </table>
         <!--

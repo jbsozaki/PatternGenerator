@@ -17,15 +17,49 @@ let m_nMaskRight;
 let m_nMaskTop;
 let m_nMaskBottom;
 
+let m_imgBg;
+let m_isLoadedImg;
+
 const COLOR_TABLE = ["red", "blue", "green", "fuchsia", "teal", "lime", "olive"];
 //------------------------------------------------------------------
 // Onload
 window.onload = () => {
+
+    m_isLoadedImg = false;
     
     //SaveCanvas(m_canvas, "all.png");
     // イベントリスナー登録
     document.querySelector("#btn1").addEventListener("click", clickDownloadButton);
     document.querySelector("#btn-draw").addEventListener("click", clickDrawButton);
+
+    let selFile = document.getElementById('selectFile'); // input type="file"の要素取得
+    selFile.addEventListener("change", function(evt){
+        m_isLoadedImg = false;
+        var file = evt.target.files; // fileの取得
+        var reader = new FileReader();
+       
+        if (0 < file.length) {
+            reader.readAsDataURL(file[0]); // fileの要素をdataURL形式で読み込む
+        
+            // ファイルを読み込んだ時に実行する
+            reader.onload = function(){
+            var dataUrl = reader.result; // 読み込んだファイルURL
+            m_imgBg= new Image(); // 画像
+        
+            m_imgBg.src = dataUrl;
+        
+            // 画像が読み込んだ時に実行する
+            m_imgBg.onload = function() {
+                // canvasに画像ソースを設定する
+                m_isLoadedImg = true;
+                // 画像のサイズを設定する場合
+                // ctx.drawImage(img, 0, 0, 300, 400); heightとwidthも合わせて設定可能
+                }
+            }
+        } else {
+            m_isLoadedImg = false;
+        }
+    }, false);
 }
 
 //------------------------------------------------------------------
@@ -54,12 +88,12 @@ function clickDrawButton() {
     // download button enable
     let elemBtn = document.querySelector('#btn1'); // Canvasの取得
     elemBtn.style.display = "block";
+
 }
 
 // Download ボタンクリック
 function clickDownloadButton() {
     m_canvas = document.querySelector('#canvas'); // Canvasの取得
-    
 
     let elem = document.querySelector('#select'); // Canvasの取得
     let nSelectIndex = elem.selectedIndex;
@@ -136,9 +170,25 @@ function DrawPattern(canvas, dbRate) {
     context = canvas.getContext('2d'); // Canvasからコンテキスを取得
     SetCanvasSize(canvas, m_nAllWidth * dbRate, m_nAllHeight * dbRate);
 
-    // 背景描画
+    // 背景色描画
     context.fillStyle = 'black'; // 描画の塗り色を決める
     context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate); // 位置とサイズを決めて描画
+
+    // 背景画像描画
+    if(m_isLoadedImg == true) {
+        let nImgWidth = m_imgBg.width;
+        let nImgHeight = m_imgBg.height;
+        let nImgNumX = parseInt(m_nAllWidth / nImgWidth) + 1;
+        let nImgNumY = parseInt(m_nAllHeight / nImgHeight) + 1;
+        for(let x = 0; x < nImgNumX; x++){
+            for(let y = 0; y < nImgNumY; y++){
+                context.drawImage(m_imgBg, x * nImgWidth * dbRate, y * nImgHeight * dbRate, nImgWidth * dbRate, nImgHeight * dbRate);
+            }
+        }
+
+        // stretch
+        //context.drawImage(m_imgBg, 100, 100, m_nAllWidth * dbRate, m_nAllHeight * dbRate);
+    }
 
     // マスク描画
     context.fillStyle = 'gray'; // 描画の塗り色を決める
