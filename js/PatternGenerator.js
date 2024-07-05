@@ -1,9 +1,15 @@
 
 
+//定数
+const COLOR_TABLE = ["red", "blue", "green", "fuchsia", "teal", "lime", "olive"];
+const BG_MODE_CROSS = 1;
+const BG_MODE_WARD = 2;
+const BG_MODE_FILE = 3;
+
+//------------------------------------------------------------------
 // メンバ変数
 let m_canvas;
 let m_context;
-
 let m_nAllWidth;
 let m_nAllHeight;
 let m_nScreenNumX;
@@ -16,21 +22,23 @@ let m_nMaskLeft;
 let m_nMaskRight;
 let m_nMaskTop;
 let m_nMaskBottom;
-
 let m_imgBg;
 let m_isLoadedImg;
 
-const COLOR_TABLE = ["red", "blue", "green", "fuchsia", "teal", "lime", "olive"];
+
 //------------------------------------------------------------------
 // Onload
 window.onload = () => {
-
     m_isLoadedImg = false;
+    m_nBgMode = BG_MODE_CROSS;
     
     //SaveCanvas(m_canvas, "all.png");
     // イベントリスナー登録
     document.querySelector("#btn1").addEventListener("click", clickDownloadButton);
     document.querySelector("#btn-draw").addEventListener("click", clickDrawButton);
+    document.querySelector("#radio-1").addEventListener("change", changeRadio);
+    document.querySelector("#radio-2").addEventListener("change", changeRadio);
+    document.querySelector("#radio-3").addEventListener("change", changeRadio);
 
     let selFile = document.getElementById('selectFile'); // input type="file"の要素取得
     selFile.addEventListener("change", function(evt){
@@ -62,6 +70,8 @@ window.onload = () => {
     }, false);
 }
 
+
+
 //------------------------------------------------------------------
 
 // 画像生成 ボタンクリック
@@ -69,26 +79,30 @@ function clickDrawButton() {
     console.log("click");
     GetParameters();
 
-    // 描画 保存用
-    m_canvas = document.querySelector('#canvas'); // Canvasの取得
-    m_context = m_canvas.getContext('2d'); // Canvasからコンテキスを取得
-    DrawPattern(m_canvas, 1.0);
+    let nBgMode = GetBackgroundMode();
+    if(nBgMode != BG_MODE_FILE || m_isLoadedImg == true) {  // 設定チェック
+        // 描画 保存用
+        m_canvas = document.querySelector('#canvas'); // Canvasの取得
+        m_context = m_canvas.getContext('2d'); // Canvasからコンテキスを取得
+        DrawPattern(m_canvas, 1.0);
 
-    // 描画 表示用
-    canvas = document.querySelector('#canvas2'); // Canvasの取得
-    let dbRate = window.innerWidth / m_nAllWidth;
-    if(1.0 < dbRate) {
-        dbRate = 1.0;
+        // 描画 表示用
+        canvas = document.querySelector('#canvas2'); // Canvasの取得
+        let dbRate = window.innerWidth / m_nAllWidth;
+        if(1.0 < dbRate) {
+            dbRate = 1.0;
+        }
+        DrawPattern(canvas, dbRate);
+
+        // select
+        SetSelectOption();
+
+        // download button enable
+        let elemBtn = document.querySelector('#btn1'); // Canvasの取得
+        elemBtn.style.display = "block";
+    } else {
+        alert("画像ファイルが選択されていません。");
     }
-    DrawPattern(canvas, dbRate);
-
-    // select
-    SetSelectOption();
-
-    // download button enable
-    let elemBtn = document.querySelector('#btn1'); // Canvasの取得
-    elemBtn.style.display = "block";
-
 }
 
 // Download ボタンクリック
@@ -104,6 +118,18 @@ function clickDownloadButton() {
         let nIndexX = parseInt((nSelectIndex - 1) % m_nScreenNumX);
         let nIndexY = parseInt((nSelectIndex - 1) / m_nScreenNumX);
         SaveCropCanvas(m_canvas, GetPositionX(nIndexX), GetPositionY(nIndexY), m_nWidth, m_nHeight, "vp_" + nSelectIndex +".png");
+    }
+}
+
+// ラジオボタンチェックイベント
+function changeRadio() {
+    console.log("change radio");
+    let nMode = GetBackgroundMode();
+    let elem = document.querySelector("#selectFile");
+    if(nMode == BG_MODE_FILE) {
+        elem.disabled = false;
+    } else {
+        elem.disabled = true;
     }
 }
 
@@ -124,7 +150,22 @@ function SetSelectOption() {
     }
     elem.innerHTML = strHtml;
     elem.style.display = "block";
-    
+}
+
+// 背景モード取得
+function GetBackgroundMode() {
+    let nMode = BG_MODE_CROSS;
+    let elemRadio1 = document.querySelector('#radio-1');
+    let elemRadio2 = document.querySelector('#radio-2');
+    let elemRadio3 = document.querySelector('#radio-3');
+    if(elemRadio1.checked == true) {
+        nMode = BG_MODE_CROSS;
+    } else if(elemRadio2.checked == true) {
+        nMode = BG_MODE_WARD;
+    } else if(elemRadio3.checked == true) {
+        nMode = BG_MODE_FILE;
+    } 
+    return nMode;
 }
 
 //------------------------------------------------------------------
@@ -170,26 +211,46 @@ function DrawPattern(canvas, dbRate) {
     context = canvas.getContext('2d'); // Canvasからコンテキスを取得
     SetCanvasSize(canvas, m_nAllWidth * dbRate, m_nAllHeight * dbRate);
 
-    // 背景色描画
-    context.fillStyle = 'black'; // 描画の塗り色を決める
-    context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate); // 位置とサイズを決めて描画
-
-    // 背景画像描画
-    if(m_isLoadedImg == true) {
-        let nImgWidth = m_imgBg.width;
-        let nImgHeight = m_imgBg.height;
-        let nImgNumX = parseInt(m_nAllWidth / nImgWidth) + 1;
-        let nImgNumY = parseInt(m_nAllHeight / nImgHeight) + 1;
-        for(let x = 0; x < nImgNumX; x++){
-            for(let y = 0; y < nImgNumY; y++){
-                context.drawImage(m_imgBg, x * nImgWidth * dbRate, y * nImgHeight * dbRate, nImgWidth * dbRate, nImgHeight * dbRate);
+    // 背景描画
+    let nBgMode = GetBackgroundMode();
+    if(nBgMode == BG_MODE_CROSS) {
+        context.fillStyle = 'black'; // 描画の塗り色を決める
+        context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate);
+    } else if(nBgMode == BG_MODE_WARD) {
+        context.fillStyle = 'white'; // 描画の塗り色を決める
+        context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate);
+        let nFontSize = 48;
+        let strText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        for(let i = 0; i < parseInt(m_nAllWidth / nFontSize / 26 * 2); i++) {
+            strText += strText;
+        }
+        //let strText = "AB";
+        for(let i = 0; i < parseInt(m_nAllHeight / nFontSize * 2); i++) {
+            DrawText(context, 0, nFontSize * dbRate * i + nFontSize * dbRate , strText, "black", nFontSize * dbRate, "left");
+            strText = strText.substring(3);
+        }
+    } else if(nBgMode == BG_MODE_FILE) {
+        // 画像ファイル描画
+        if(m_isLoadedImg == true) {
+            let nImgWidth = m_imgBg.width;
+            let nImgHeight = m_imgBg.height;
+            // アスペクト比を保持して拡大
+            context.fillStyle = 'gray'; // 描画の塗り色を決める
+            context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate);    // アスペクト比が異なる場合マスク色を描画
+            if(m_nAllWidth / m_nAllHeight < nImgWidth / nImgHeight) {
+                let nImgWidthFit = m_nAllWidth;
+                let nImgHeightFit = nImgHeight * m_nAllWidth / nImgWidth;
+                let nImgPosY = m_nAllHeight / 2 - nImgHeightFit / 2;
+                context.drawImage(m_imgBg, 0, nImgPosY * dbRate, nImgWidthFit * dbRate, nImgHeightFit * dbRate);
+            } else {
+                let nImgWidthFit = nImgWidth * m_nAllHeight / nImgHeight;
+                let nImgHeightFit = m_nAllHeight;
+                let nImgPosX = m_nAllWidth / 2 - nImgWidthFit / 2;
+                context.drawImage(m_imgBg, nImgPosX * dbRate, 0, nImgWidthFit * dbRate, nImgHeightFit * dbRate);
             }
         }
-
-        // stretch
-        //context.drawImage(m_imgBg, 100, 100, m_nAllWidth * dbRate, m_nAllHeight * dbRate);
     }
-
+    
     // マスク描画
     context.fillStyle = 'gray'; // 描画の塗り色を決める
     context.fillRect(0, 0, m_nMaskLeft * dbRate, m_nAllHeight * dbRate); // 左
@@ -230,7 +291,7 @@ function DrawPattern(canvas, dbRate) {
 
             // Text
             strText = String(x + y * m_nScreenNumX + 1);
-            DrawText(context, (nPosX + m_nWidth / 2 - 10) * dbRate, (nPosY + m_nHeight / 2 - 10) * dbRate, strText, COLOR_TABLE[nColorIndex], 250*dbRate);
+            DrawText(context, (nPosX + m_nWidth / 2 - 10) * dbRate, (nPosY + m_nHeight / 2 - 10) * dbRate, strText, COLOR_TABLE[nColorIndex], 250*dbRate, "right");
             nColorIndex++;
             if (COLOR_TABLE.length <= nColorIndex)
             {
@@ -238,7 +299,6 @@ function DrawPattern(canvas, dbRate) {
             }
         }
     }
-
 }
 
 // 画面X位置取得
@@ -275,10 +335,10 @@ function GetPositionY(nYIndex) {
 }
 
 // テキスト描画
-function DrawText(context, nPosX, nPosY, strText, strColor, nFontSize) {
+function DrawText(context, nPosX, nPosY, strText, strColor, nFontSize, strTextAlign) {
     context.fillStyle = strColor; // 描画の塗り色を決める
     context.font = "" + nFontSize + "px serif";
-    context.textAlign = "right";
+    context.textAlign = strTextAlign;
     context.fillText(strText, nPosX, nPosY);
 }
 
