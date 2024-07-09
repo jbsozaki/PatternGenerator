@@ -2,14 +2,36 @@
 
 //定数
 const COLOR_TABLE = ["red", "blue", "green", "fuchsia", "teal", "lime", "olive"];
+const BG_MODE_None = 0;
 const BG_MODE_CROSS = 1;
 const BG_MODE_WARD = 2;
 const BG_MODE_FILE = 3;
+//------------------------------------------------------------------
+const ALPHABET_WORDS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
+
+//######################################################################################
+// パラメータデータ クラス
+//######################################################################################
+class Parameter {
+	nAllWidth;
+	nAllHeight;
+	nScreenNumX;
+	nScreenNumY;
+	nWidth;
+	nHeight;
+	nBrandingWidth;
+	nBrandingHeight;
+	nMaskLeft;
+	nMaskRight;
+	nMaskTop;
+	nMaskBottom;
+}
 //------------------------------------------------------------------
 // メンバ変数
 let m_canvas;
 let m_context;
+let m_prmLastGen;   // 前回生成した際のパラメータ
 let m_nAllWidth;
 let m_nAllHeight;
 let m_nScreenNumX;
@@ -22,15 +44,23 @@ let m_nMaskLeft;
 let m_nMaskRight;
 let m_nMaskTop;
 let m_nMaskBottom;
-let m_imgBg;
-let m_isLoadedImg;
-
+let m_arrayImg;
+let m_arrayIsLoadedImg;
+let m_nLastGenerateBGMode;
+let m_nLastScreenNum;
 
 //------------------------------------------------------------------
 // Onload
 window.onload = () => {
-    m_isLoadedImg = false;
+    m_nLastGenerateBGMode = BG_MODE_None;
     m_nBgMode = BG_MODE_CROSS;
+    m_arrayImg = new Array();
+    m_arrayIsLoadedImg = new Array();
+
+    GetCurrentParameters();    // 現在の設定値を取得
+    m_nLastScreenNum = 0;
+    ReCreateFileSelectControls();
+    m_nLastScreenNum = m_nScreenNumX * m_nScreenNumY;
     
     //SaveCanvas(m_canvas, "all.png");
     // イベントリスナー登録
@@ -39,70 +69,46 @@ window.onload = () => {
     document.querySelector("#radio-1").addEventListener("change", changeRadio);
     document.querySelector("#radio-2").addEventListener("change", changeRadio);
     document.querySelector("#radio-3").addEventListener("change", changeRadio);
-
-    let selFile = document.getElementById('selectFile'); // input type="file"の要素取得
-    selFile.addEventListener("change", function(evt){
-        m_isLoadedImg = false;
-        var file = evt.target.files; // fileの取得
-        var reader = new FileReader();
-       
-        if (0 < file.length) {
-            reader.readAsDataURL(file[0]); // fileの要素をdataURL形式で読み込む
-        
-            // ファイルを読み込んだ時に実行する
-            reader.onload = function(){
-            var dataUrl = reader.result; // 読み込んだファイルURL
-            m_imgBg= new Image(); // 画像
-        
-            m_imgBg.src = dataUrl;
-        
-            // 画像が読み込んだ時に実行する
-            m_imgBg.onload = function() {
-                // canvasに画像ソースを設定する
-                m_isLoadedImg = true;
-                // 画像のサイズを設定する場合
-                // ctx.drawImage(img, 0, 0, 300, 400); heightとwidthも合わせて設定可能
-                }
-            }
-        } else {
-            m_isLoadedImg = false;
-        }
-    }, false);
+    document.querySelector("#screen-num-x").addEventListener("change", changeScreenNumInput);
+    document.querySelector("#screen-num-y").addEventListener("change", changeScreenNumInput);
+    document.querySelector("#all-width").addEventListener("change", changeInputDefault);
+    document.querySelector("#all-height").addEventListener("change", changeInputDefault);
+    document.querySelector("#screen-width").addEventListener("change", changeInputDefault);
+    document.querySelector("#screen-height").addEventListener("change", changeInputDefault);
+    document.querySelector("#mask-left").addEventListener("change", changeInputDefault);
+    document.querySelector("#mask-right").addEventListener("change", changeInputDefault);
+    document.querySelector("#mask-top").addEventListener("change", changeInputDefault);
+    document.querySelector("#mask-bottom").addEventListener("change", changeInputDefault);
 }
-
-
 
 //------------------------------------------------------------------
 
 // 画像生成 ボタンクリック
 function clickDrawButton() {
     console.log("click");
-    GetParameters();
+    GetCurrentParameters();
 
-    let nBgMode = GetBackgroundMode();
-    if(nBgMode != BG_MODE_FILE || m_isLoadedImg == true) {  // 設定チェック
-        // 描画 保存用
-        m_canvas = document.querySelector('#canvas'); // Canvasの取得
-        m_context = m_canvas.getContext('2d'); // Canvasからコンテキスを取得
-        DrawPattern(m_canvas, 1.0);
+    // 描画 保存用
+    m_nLastGenerateBGMode = GetBackgroundMode();
+    m_canvas = document.querySelector('#canvas'); // Canvasの取得
+    m_context = m_canvas.getContext('2d'); // Canvasからコンテキスを取得
+    DrawPattern(m_canvas, 1.0);
 
-        // 描画 表示用
-        canvas = document.querySelector('#canvas2'); // Canvasの取得
-        let dbRate = window.innerWidth / m_nAllWidth;
-        if(1.0 < dbRate) {
-            dbRate = 1.0;
-        }
-        DrawPattern(canvas, dbRate);
-
-        // select
-        SetSelectOption();
-
-        // download button enable
-        let elemBtn = document.querySelector('#btn1'); // Canvasの取得
-        elemBtn.style.display = "block";
-    } else {
-        alert("画像ファイルが選択されていません。");
+    // 描画 表示用
+    canvas = document.querySelector('#canvas2'); // Canvasの取得
+    let dbRate = window.innerWidth / m_nAllWidth;
+    if(1.0 < dbRate) {
+        dbRate = 1.0;
     }
+    DrawPattern(canvas, dbRate);
+
+    // select
+    SetSelectOption();
+
+    // download button enable
+    SetStyleDisplay("canvas2", "block");
+    SetStyleDisplay("btn1", "block");
+    SetStyleDisplay("select", "block");
 }
 
 // Download ボタンクリック
@@ -113,29 +119,71 @@ function clickDownloadButton() {
     let nSelectIndex = elem.selectedIndex;
 
     if(nSelectIndex == 0) {
+        if(m_nLastGenerateBGMode == BG_MODE_FILE) {
+            DrawPattern(m_canvas, 1.0); // 背景表示が画像ファイルのモードの場合、再描画してから保存する
+        }
         SaveCanvas(m_canvas, "all.png");
     } else {
         let nIndexX = parseInt((nSelectIndex - 1) % m_nScreenNumX);
         let nIndexY = parseInt((nSelectIndex - 1) / m_nScreenNumX);
-        SaveCropCanvas(m_canvas, GetPositionX(nIndexX), GetPositionY(nIndexY), m_nWidth, m_nHeight, "vp_" + nSelectIndex +".png");
+        if(m_nLastGenerateBGMode != BG_MODE_FILE) {
+            SaveCropCanvas(m_canvas, GetPositionX(nIndexX), GetPositionY(nIndexY), m_nWidth, m_nHeight, "vp_" + nSelectIndex +".png");
+        } else {
+            context = m_canvas.getContext('2d'); // Canvasからコンテキスを取得
+            context.fillStyle = 'gray'; // 描画の塗り色を決める
+            context.fillRect(0, 0, m_nAllWidth, m_nAllHeight);    // 背景色グレー
+            // 背景が画像ファイルの場合再描画
+            DrawBackgroundImage(context, nIndexX, nIndexY, 1.0);
+            // マスク描画
+            DrawMask(context, 1.0);
+            // 中心線描画
+            DrawCenterLine(context, 1.0);
+            // スクリーンごとのRect描画
+            DrawScreenBorder(context, 1.0);
+            SaveCropCanvas(m_canvas, GetPositionX(nIndexX), GetPositionY(nIndexY), m_nWidth, m_nHeight, "vp_" + nSelectIndex +".png");
+        }
     }
 }
 
 // ラジオボタンチェックイベント
 function changeRadio() {
     console.log("change radio");
+    GetCurrentParameters();    // 現在の設定値を取得
     let nMode = GetBackgroundMode();
-    let elem = document.querySelector("#selectFile");
     if(nMode == BG_MODE_FILE) {
-        elem.disabled = false;
+        SetDisabledFileSelectControls(false);
     } else {
-        elem.disabled = true;
+        SetDisabledFileSelectControls(true);
     }
+    changeInputDefault();
+}
+
+// スクリーン数設定INPUT変更イベント
+function changeScreenNumInput() {
+    console.log("changeScreenNumInput");
+    GetCurrentParameters();    // 現在の設定値を取得
+    ReCreateFileSelectControls();
+    m_nLastScreenNum = m_nScreenNumX * m_nScreenNumY;
+
+    changeInputDefault();
+}
+
+// INPUT変更共通処理
+function changeInputDefault() {
+    SetStyleDisplay("canvas2", "none");
+    SetStyleDisplay("btn1", "none");
+    SetStyleDisplay("select", "none");
 }
 
 //------------------------------------------------------------------
-
-// SLECT要素設定
+// style.display 設定
+function SetStyleDisplay(strId, strDisplay) {
+    let elem = document.querySelector('#' + strId); // Canvasの取得
+    if(elem != null) {
+        elem.style.display = strDisplay;
+    }
+}
+// SELECT要素設定
 function SetSelectOption() {
     let elem = document.querySelector('#select'); // Canvasの取得
     let strHtml = "<option id='opt_0'>全体</option>";
@@ -168,11 +216,85 @@ function GetBackgroundMode() {
     return nMode;
 }
 
+// ファイル選択コントロール再生成
+function ReCreateFileSelectControls() {
+    let elem = document.querySelector('#divSelectFile'); // divの取得
+    let nMode = GetBackgroundMode();
+    let nNewScreenNum = m_nScreenNumX * m_nScreenNumY;
+    
+    if(m_nLastScreenNum < nNewScreenNum) {
+        // スクリーンが増えた場合
+        for(let i = m_nLastScreenNum; i <  nNewScreenNum; i++) {
+            let strId = "selectFile" + (i + 1);
+            let input = document.createElement( 'input' );
+            input.type = 'file';
+            input.id = strId;
+            input.accept = '.png,.jpeg,.jpg';
+            input.style.display = 'block';
+            if(nMode == BG_MODE_FILE) {
+                input.disabled = false;
+            } else {
+                input.disabled = true;
+            }
+            input.addEventListener("change", function(evt){
+                m_arrayIsLoadedImg[i] = false;
+                var file = evt.target.files; // fileの取得
+                var reader = new FileReader();
+               
+                if (0 < file.length) {
+                    reader.readAsDataURL(file[0]); // fileの要素をdataURL形式で読み込む
+                
+                    // ファイルを読み込んだ時に実行する
+                    reader.onload = function(){
+                        var dataUrl = reader.result; // 読み込んだファイルURL
+                        m_arrayImg[i] = new Image(); // 画像
+                        m_arrayImg[i].src = dataUrl;
+                        // 画像が読み込んだ時に実行する
+                        m_arrayImg[i].onload = function() {
+                            // canvasに画像ソースを設定する
+                            m_arrayIsLoadedImg[i] = true;
+                        }
+                    }
+                } else {
+                    m_arrayIsLoadedImg[i] = false;
+                }
+                changeInputDefault();
+            }, false);
+            elem.appendChild(input);
+            console.log("add input");
+        }
+    } else if(nNewScreenNum < m_nLastScreenNum) {
+        // スクリーンが減った場合
+        for(let i = nNewScreenNum; i < m_nLastScreenNum; i++) {
+            let strId = "selectFile" + (i + 1);
+            let input = document.querySelector('#' + strId);
+            if(input != null) {
+                elem.removeChild(input);
+                console.log("remove input");
+            }
+        }
+    }
+}
+
+// ファイル選択コントロール 有効/無効設定
+function SetDisabledFileSelectControls(isDisabled) {
+    let nNo = 1;
+    for (let x = 0; x < m_nScreenNumX; x++) {
+        for (let y = 0; y < m_nScreenNumY; y++) {
+            let strId = "selectFile" + nNo;
+            let elem = document.querySelector('#' + strId); // divの取得
+            if(elem != null) {
+                elem.disabled = isDisabled;
+            }
+            nNo++;
+        }
+    }
+}
+
 //------------------------------------------------------------------
-
-
 // 設定値取得
-function GetParameters() {
+function GetCurrentParameters() {
+    //let pram = new Parameter();
     m_nAllWidth = GetElementValue("all-width");
     m_nAllHeight = GetElementValue("all-height");
     m_nScreenNumX = GetElementValue("screen-num-x");
@@ -220,7 +342,7 @@ function DrawPattern(canvas, dbRate) {
         context.fillStyle = 'white'; // 描画の塗り色を決める
         context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate);
         let nFontSize = 48;
-        let strText = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        let strText = ALPHABET_WORDS;
         for(let i = 0; i < parseInt(m_nAllWidth / nFontSize / 26 * 2); i++) {
             strText += strText;
         }
@@ -231,52 +353,77 @@ function DrawPattern(canvas, dbRate) {
         }
     } else if(nBgMode == BG_MODE_FILE) {
         // 画像ファイル描画
-        if(m_isLoadedImg == true) {
-            let nImgWidth = m_imgBg.width;
-            let nImgHeight = m_imgBg.height;
-            // アスペクト比を保持して拡大
-            context.fillStyle = 'gray'; // 描画の塗り色を決める
-            context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate);    // アスペクト比が異なる場合マスク色を描画
-            if(m_nAllWidth / m_nAllHeight < nImgWidth / nImgHeight) {
-                let nImgWidthFit = m_nAllWidth;
-                let nImgHeightFit = nImgHeight * m_nAllWidth / nImgWidth;
-                let nImgPosY = m_nAllHeight / 2 - nImgHeightFit / 2;
-                context.drawImage(m_imgBg, 0, nImgPosY * dbRate, nImgWidthFit * dbRate, nImgHeightFit * dbRate);
-            } else {
-                let nImgWidthFit = nImgWidth * m_nAllHeight / nImgHeight;
-                let nImgHeightFit = m_nAllHeight;
-                let nImgPosX = m_nAllWidth / 2 - nImgWidthFit / 2;
-                context.drawImage(m_imgBg, nImgPosX * dbRate, 0, nImgWidthFit * dbRate, nImgHeightFit * dbRate);
+        context.fillStyle = 'gray'; // 描画の塗り色を決める
+        context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate);    // アスペクト比が異なる場合マスク色を描画
+        context.globalAlpha = 1.0;
+        let nNo = 1;
+        for (let x = 0; x < m_nScreenNumX; x++)
+        {
+            for (let y = 0; y < m_nScreenNumY; y++)
+            {
+                DrawBackgroundImage(context, x, y, dbRate);
+                nNo++;
             }
         }
     }
     
     // マスク描画
-    context.fillStyle = 'gray'; // 描画の塗り色を決める
-    context.fillRect(0, 0, m_nMaskLeft * dbRate, m_nAllHeight * dbRate); // 左
-    context.fillRect((m_nAllWidth - m_nMaskRight )* dbRate , 0, m_nMaskRight * dbRate, m_nAllHeight * dbRate); // 右
-    context.fillRect(0, 0, m_nAllWidth * dbRate, m_nMaskTop * dbRate); // 上
-    context.fillRect(0, (m_nAllHeight - m_nMaskBottom) * dbRate, m_nAllWidth * dbRate, m_nMaskBottom * dbRate); // 下
+    DrawMask(context, dbRate);
 
-    // 白四角描画
-    let nCellSize = 60;
-    for (let x = 0; x < m_nAllWidth / nCellSize; x++)
-    {
-        for (let y = 0; y < m_nAllHeight / nCellSize; y++)
+    // クロスハッチ描画
+    if(nBgMode == BG_MODE_CROSS) {
+        let nCellSize = 60;
+        for (let x = 0; x < m_nAllWidth / nCellSize; x++)
         {
-            context.strokeStyle = "white";
-            context.strokeRect(x * nCellSize * dbRate, y * nCellSize * dbRate, nCellSize * dbRate, nCellSize * dbRate);
+            for (let y = 0; y < m_nAllHeight / nCellSize; y++)
+            {
+                context.strokeStyle = "white";
+                context.strokeRect(x * nCellSize * dbRate, y * nCellSize * dbRate, nCellSize * dbRate, nCellSize * dbRate);
+            }
         }
     }
+    
+    // 中心線描画
+    DrawCenterLine(context, dbRate);
+    // スクリーンごとのRect描画
+    DrawScreenBorder(context, dbRate);
+}
 
+// スクリーン背景画像描画
+function DrawBackgroundImage(context, nXIndex, nYIndex, dbRate) {
+    let nIndex = parseInt(nYIndex * m_nScreenNumX) + nXIndex;
+    if(m_arrayIsLoadedImg[nIndex] == true) {
+        let nImgWidth = m_arrayImg[nIndex].width;
+        let nImgHeight = m_arrayImg[nIndex].height;
+        // アスペクト比を保持して拡大
+        if(m_nWidth / m_nHeight < nImgWidth / nImgHeight) {
+            let nImgWidthFit = m_nWidth;
+            let nImgHeightFit = nImgHeight * m_nWidth / nImgWidth;
+            let nImgPosX = GetPositionX(nXIndex);
+            let nImgPosY = GetPositionY(nYIndex) + (m_nHeight - nImgHeightFit) / 2;
+            context.drawImage(m_arrayImg[nIndex], nImgPosX * dbRate, nImgPosY * dbRate, nImgWidthFit * dbRate, nImgHeightFit * dbRate);
+        } else {
+            let nImgWidthFit = nImgWidth * m_nHeight / nImgHeight;
+            let nImgHeightFit = m_nHeight;
+            let nImgPosX = GetPositionX(nXIndex) + (m_nWidth - nImgWidthFit) / 2;
+            let nImgPosY = GetPositionY(nYIndex);
+            context.drawImage(m_arrayImg[nIndex], nImgPosX * dbRate, nImgPosY * dbRate, nImgWidthFit * dbRate, nImgHeightFit * dbRate);
+        }
+    }
+}
+
+// 中心線描画
+function DrawCenterLine(context, dbRate) {
     // 中心線描画
     context.fillStyle = 'yellow'; // 描画の塗り色を決める
     context.fillRect(0, m_nAllHeight * dbRate / 2 - 1, m_nAllWidth * dbRate, 2);
     context.fillRect(m_nAllWidth * dbRate / 2 - 1 , 0, 2, m_nAllHeight * dbRate);
+}
 
-    // スクリーンごとのRect描画
-    context.lineWidth = 5 * dbRate;
+// スクリーンの表示範囲を描画
+function DrawScreenBorder(context, dbRate) {
     let nColorIndex = 0;
+    context.lineWidth = 5 * dbRate;
     for (let y = 0; y < m_nScreenNumY; y++)
     {
         for (let x = 0; x < m_nScreenNumX; x++)
@@ -301,6 +448,15 @@ function DrawPattern(canvas, dbRate) {
     }
 }
 
+// マスク描画
+function DrawMask(context, dbRate) {
+    context.fillStyle = 'gray'; // 描画の塗り色を決める
+    context.fillRect(0, 0, m_nMaskLeft * dbRate, m_nAllHeight * dbRate); // 左
+    context.fillRect((m_nAllWidth - m_nMaskRight )* dbRate , 0, m_nMaskRight * dbRate, m_nAllHeight * dbRate); // 右
+    context.fillRect(0, 0, m_nAllWidth * dbRate, m_nMaskTop * dbRate); // 上
+    context.fillRect(0, (m_nAllHeight - m_nMaskBottom) * dbRate, m_nAllWidth * dbRate, m_nMaskBottom * dbRate); // 下
+}
+
 // 画面X位置取得
 function GetPositionX(nXIndex) {
     let nPosX = 0;
@@ -319,7 +475,7 @@ function GetPositionX(nXIndex) {
 }
 // 画面Y位置取得
 function GetPositionY(nYIndex) {
-    let nPosY = 0;
+    let nPosY = 0; 
     if (m_nScreenNumY * m_nHeight < m_nAllHeight) {
         let nDiff = 0;
         nDiff = (m_nAllHeight - m_nScreenNumY * m_nHeight) / 2;
@@ -337,7 +493,7 @@ function GetPositionY(nYIndex) {
 // テキスト描画
 function DrawText(context, nPosX, nPosY, strText, strColor, nFontSize, strTextAlign) {
     context.fillStyle = strColor; // 描画の塗り色を決める
-    context.font = "" + nFontSize + "px serif";
+    context.font = "" + nFontSize + "px MS ゴシック";
     context.textAlign = strTextAlign;
     context.fillText(strText, nPosX, nPosY);
 }
