@@ -26,41 +26,28 @@ class Parameter {
 	nMaskRight;
 	nMaskTop;
 	nMaskBottom;
+    nMode;
+    arrayImg;
+    arrayIsLoadedImg;
 }
 //------------------------------------------------------------------
 // メンバ変数
 let m_canvas;
 let m_context;
-let m_prmLastGen;   // 前回生成した際のパラメータ
-let m_nAllWidth;
-let m_nAllHeight;
-let m_nScreenNumX;
-let m_nScreenNumY;
-let m_nWidth;
-let m_nHeight;
-let m_nBrandingWidth;
-let m_nBrandingHeight;
-let m_nMaskLeft;
-let m_nMaskRight;
-let m_nMaskTop;
-let m_nMaskBottom;
-let m_arrayImg;
-let m_arrayIsLoadedImg;
-let m_nLastGenerateBGMode;
-let m_nLastScreenNum;
+let m_prmLastGen;           // 前回生成した際のパラメータ
+let m_arrayImg;             // 現在選択されている画像ファイルの配列
+let m_arrayIsLoadedImg;     // 上記のロード完了フラグ
+let m_nCrntFileSelectNum;   
 
 //------------------------------------------------------------------
 // Onload
 window.onload = () => {
-    m_nLastGenerateBGMode = BG_MODE_None;
     m_nBgMode = BG_MODE_CROSS;
+    m_nCrntFileSelectNum = 0;
     m_arrayImg = new Array();
     m_arrayIsLoadedImg = new Array();
 
-    GetCurrentParameters();    // 現在の設定値を取得
-    m_nLastScreenNum = 0;
     ReCreateFileSelectControls();
-    m_nLastScreenNum = m_nScreenNumX * m_nScreenNumY;
     
     //SaveCanvas(m_canvas, "all.png");
     // イベントリスナー登録
@@ -86,21 +73,20 @@ window.onload = () => {
 // 画像生成 ボタンクリック
 function clickDrawButton() {
     console.log("click");
-    GetCurrentParameters();
+    m_prmLastGen = GetCurrentParameters();
 
     // 描画 保存用
-    m_nLastGenerateBGMode = GetBackgroundMode();
     m_canvas = document.querySelector('#canvas'); // Canvasの取得
     m_context = m_canvas.getContext('2d'); // Canvasからコンテキスを取得
-    DrawPattern(m_canvas, 1.0);
+    DrawPattern(m_canvas, m_prmLastGen, 1.0);
 
     // 描画 表示用
     canvas = document.querySelector('#canvas2'); // Canvasの取得
-    let dbRate = window.innerWidth / m_nAllWidth;
+    let dbRate = window.innerWidth / m_prmLastGen.nAllWidth;
     if(1.0 < dbRate) {
         dbRate = 1.0;
     }
-    DrawPattern(canvas, dbRate);
+    DrawPattern(canvas, m_prmLastGen, dbRate);
 
     // select
     SetSelectOption();
@@ -119,28 +105,28 @@ function clickDownloadButton() {
     let nSelectIndex = elem.selectedIndex;
 
     if(nSelectIndex == 0) {
-        if(m_nLastGenerateBGMode == BG_MODE_FILE) {
-            DrawPattern(m_canvas, 1.0); // 背景表示が画像ファイルのモードの場合、再描画してから保存する
+        if(m_prmLastGen.nMode == BG_MODE_FILE) {
+            DrawPattern(m_canvas, m_prmLastGen, 1.0); // 背景表示が画像ファイルのモードの場合、再描画してから保存する
         }
         SaveCanvas(m_canvas, "all.png");
     } else {
-        let nIndexX = parseInt((nSelectIndex - 1) % m_nScreenNumX);
-        let nIndexY = parseInt((nSelectIndex - 1) / m_nScreenNumX);
-        if(m_nLastGenerateBGMode != BG_MODE_FILE) {
-            SaveCropCanvas(m_canvas, GetPositionX(nIndexX), GetPositionY(nIndexY), m_nWidth, m_nHeight, "vp_" + nSelectIndex +".png");
+        let nIndexX = parseInt((nSelectIndex - 1) % m_prmLastGen.nScreenNumX);
+        let nIndexY = parseInt((nSelectIndex - 1) / m_prmLastGen.nScreenNumX);
+        if(m_prmLastGen.nMode != BG_MODE_FILE) {
+            SaveCropCanvas(m_canvas, GetPositionX(nIndexX, m_prmLastGen), GetPositionY(nIndexY, m_prmLastGen), m_prmLastGen.nWidth, m_prmLastGen.nHeight, "vp_" + nSelectIndex +".png");
         } else {
             context = m_canvas.getContext('2d'); // Canvasからコンテキスを取得
             context.fillStyle = 'gray'; // 描画の塗り色を決める
-            context.fillRect(0, 0, m_nAllWidth, m_nAllHeight);    // 背景色グレー
+            context.fillRect(0, 0, m_prmLastGen.nAllWidth, m_prmLastGen.nAllHeight);    // 背景色グレー
             // 背景が画像ファイルの場合再描画
-            DrawBackgroundImage(context, nIndexX, nIndexY, 1.0);
+            DrawBackgroundImage(context, m_prmLastGen, nIndexX, nIndexY, 1.0);
             // マスク描画
-            DrawMask(context, 1.0);
+            DrawMask(context, m_prmLastGen, 1.0);
             // 中心線描画
-            DrawCenterLine(context, 1.0);
+            DrawCenterLine(context, m_prmLastGen, 1.0);
             // スクリーンごとのRect描画
-            DrawScreenBorder(context, 1.0);
-            SaveCropCanvas(m_canvas, GetPositionX(nIndexX), GetPositionY(nIndexY), m_nWidth, m_nHeight, "vp_" + nSelectIndex +".png");
+            DrawScreenBorder(context, m_prmLastGen, 1.0);
+            SaveCropCanvas(m_canvas, GetPositionX(nIndexX, m_prmLastGen), GetPositionY(nIndexY, m_prmLastGen), m_prmLastGen.nWidth, m_prmLastGen.nHeight, "vp_" + nSelectIndex +".png");
         }
     }
 }
@@ -148,7 +134,6 @@ function clickDownloadButton() {
 // ラジオボタンチェックイベント
 function changeRadio() {
     console.log("change radio");
-    GetCurrentParameters();    // 現在の設定値を取得
     let nMode = GetBackgroundMode();
     if(nMode == BG_MODE_FILE) {
         SetDisabledFileSelectControls(false);
@@ -163,16 +148,17 @@ function changeScreenNumInput() {
     console.log("changeScreenNumInput");
     GetCurrentParameters();    // 現在の設定値を取得
     ReCreateFileSelectControls();
-    m_nLastScreenNum = m_nScreenNumX * m_nScreenNumY;
 
     changeInputDefault();
 }
 
 // INPUT変更共通処理
 function changeInputDefault() {
+    /*
     SetStyleDisplay("canvas2", "none");
     SetStyleDisplay("btn1", "none");
     SetStyleDisplay("select", "none");
+    */
 }
 
 //------------------------------------------------------------------
@@ -188,9 +174,9 @@ function SetSelectOption() {
     let elem = document.querySelector('#select'); // Canvasの取得
     let strHtml = "<option id='opt_0'>全体</option>";
     let nNo = 1;
-    for (let x = 0; x < m_nScreenNumX; x++)
+    for (let x = 0; x < m_prmLastGen.nScreenNumX; x++)
     {
-        for (let y = 0; y < m_nScreenNumY; y++)
+        for (let y = 0; y < m_prmLastGen.nScreenNumY; y++)
         {
             strHtml += "<option id='opt_"+nNo+"'>プロジェクタ "+nNo+"</option>";
             nNo++;
@@ -220,11 +206,12 @@ function GetBackgroundMode() {
 function ReCreateFileSelectControls() {
     let elem = document.querySelector('#divSelectFile'); // divの取得
     let nMode = GetBackgroundMode();
-    let nNewScreenNum = m_nScreenNumX * m_nScreenNumY;
+    let prm = GetCurrentParameters();
+    let nNewFileSelectNum = prm.nScreenNumX * prm.nScreenNumY;
     
-    if(m_nLastScreenNum < nNewScreenNum) {
+    if(m_nCrntFileSelectNum < nNewFileSelectNum) {
         // スクリーンが増えた場合
-        for(let i = m_nLastScreenNum; i <  nNewScreenNum; i++) {
+        for(let i = m_nCrntFileSelectNum; i <  nNewFileSelectNum; i++) {
             let strId = "selectFile" + (i + 1);
             let input = document.createElement( 'input' );
             input.type = 'file';
@@ -263,9 +250,9 @@ function ReCreateFileSelectControls() {
             elem.appendChild(input);
             console.log("add input");
         }
-    } else if(nNewScreenNum < m_nLastScreenNum) {
+    } else if(nNewFileSelectNum < m_nCrntFileSelectNum) {
         // スクリーンが減った場合
-        for(let i = nNewScreenNum; i < m_nLastScreenNum; i++) {
+        for(let i = nNewFileSelectNum; i < m_nCrntFileSelectNum; i++) {
             let strId = "selectFile" + (i + 1);
             let input = document.querySelector('#' + strId);
             if(input != null) {
@@ -274,52 +261,55 @@ function ReCreateFileSelectControls() {
             }
         }
     }
+
+    m_nCrntFileSelectNum = nNewFileSelectNum;
 }
 
 // ファイル選択コントロール 有効/無効設定
 function SetDisabledFileSelectControls(isDisabled) {
     let nNo = 1;
-    for (let x = 0; x < m_nScreenNumX; x++) {
-        for (let y = 0; y < m_nScreenNumY; y++) {
-            let strId = "selectFile" + nNo;
-            let elem = document.querySelector('#' + strId); // divの取得
-            if(elem != null) {
-                elem.disabled = isDisabled;
-            }
-            nNo++;
+    for(let i = 0; i < m_nCrntFileSelectNum; i++) {
+        let strId = "selectFile" + (i + 1);
+        let elem = document.querySelector('#' + strId); // divの取得
+        if(elem != null) {
+            elem.disabled = isDisabled;
         }
     }
 }
 
 //------------------------------------------------------------------
-// 設定値取得
+// 設定値取得 (返却値 : Parameter)
 function GetCurrentParameters() {
-    //let pram = new Parameter();
-    m_nAllWidth = GetElementValue("all-width");
-    m_nAllHeight = GetElementValue("all-height");
-    m_nScreenNumX = GetElementValue("screen-num-x");
-    m_nScreenNumY = GetElementValue("screen-num-y");
-    m_nWidth = GetElementValue("screen-width");
-    m_nHeight = GetElementValue("screen-height");
-    m_nMaskLeft = GetElementValue("mask-left");
-    m_nMaskRight = GetElementValue("mask-right");
-    m_nMaskTop = GetElementValue("mask-top");
-    m_nMaskBottom = GetElementValue("mask-bottom");
-    m_nBrandingWidth = 0;
-    m_nBrandingHeight = 0;
-    if (1 < m_nScreenNumX) {
-        m_nBrandingWidth = (m_nWidth * m_nScreenNumX - m_nAllWidth) / (m_nScreenNumX - 1);
-        if(m_nBrandingWidth < 0) {
-            m_nBrandingWidth = 0;
+    let pram = new Parameter();
+    pram.nAllWidth = GetElementValue("all-width");
+    pram.nAllHeight = GetElementValue("all-height");
+    pram.nScreenNumX = GetElementValue("screen-num-x");
+    pram.nScreenNumY = GetElementValue("screen-num-y");
+    pram.nWidth = GetElementValue("screen-width");
+    pram.nHeight = GetElementValue("screen-height");
+    pram.nMaskLeft = GetElementValue("mask-left");
+    pram.nMaskRight = GetElementValue("mask-right");
+    pram.nMaskTop = GetElementValue("mask-top");
+    pram.nMaskBottom = GetElementValue("mask-bottom");
+    pram.nBrandingWidth = 0;
+    pram.nBrandingHeight = 0;
+    if (1 < pram.nScreenNumX) {
+        pram.nBrandingWidth = (pram.nWidth * pram.nScreenNumX - pram.nAllWidth) / (pram.nScreenNumX - 1);
+        if(pram.nBrandingWidth < 0) {
+            pram.nBrandingWidth = 0;
         }
     }
-    if (1 < m_nScreenNumY)
+    if (1 < pram.nScreenNumY)
     {
-        m_nBrandingHeight = (m_nHeight * m_nScreenNumY - m_nAllHeight) / (m_nScreenNumY - 1);
-        if(m_nBrandingHeight < 0 ) {
-            m_nBrandingHeight = 0;
+        pram.nBrandingHeight = (pram.nHeight * pram.nScreenNumY - pram.nAllHeight) / (pram.nScreenNumY - 1);
+        if(pram.nBrandingHeight < 0 ) {
+            pram.nBrandingHeight = 0;
         }
     }
+    pram.nMode = GetBackgroundMode();
+    pram.arrayImg = m_arrayImg.concat();
+    pram.arrayIsLoadedImg = m_arrayIsLoadedImg.concat();
+    return pram;
 }
 
 // 要素のValue取得
@@ -329,53 +319,54 @@ function GetElementValue(strElemId) {
 }
 
 // パターン描画
-function DrawPattern(canvas, dbRate) {
+function DrawPattern(canvas, prm, dbRate) {
+    
     context = canvas.getContext('2d'); // Canvasからコンテキスを取得
-    SetCanvasSize(canvas, m_nAllWidth * dbRate, m_nAllHeight * dbRate);
+    SetCanvasSize(canvas, prm.nAllWidth * dbRate, prm.nAllHeight * dbRate);
 
     // 背景描画
     let nBgMode = GetBackgroundMode();
     if(nBgMode == BG_MODE_CROSS) {
         context.fillStyle = 'black'; // 描画の塗り色を決める
-        context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate);
+        context.fillRect(0, 0, prm.nAllWidth * dbRate, prm.nAllHeight * dbRate);
     } else if(nBgMode == BG_MODE_WARD) {
         context.fillStyle = 'white'; // 描画の塗り色を決める
-        context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate);
+        context.fillRect(0, 0, prm.nAllWidth * dbRate, prm.nAllHeight * dbRate);
         let nFontSize = 48;
         let strText = ALPHABET_WORDS;
-        for(let i = 0; i < parseInt(m_nAllWidth / nFontSize / 26 * 2); i++) {
+        for(let i = 0; i < parseInt(prm.nAllWidth / nFontSize / 26 * 2); i++) {
             strText += strText;
         }
         //let strText = "AB";
-        for(let i = 0; i < parseInt(m_nAllHeight / nFontSize * 2); i++) {
+        for(let i = 0; i < parseInt(prm.nAllHeight / nFontSize * 2); i++) {
             DrawText(context, 0, nFontSize * dbRate * i + nFontSize * dbRate , strText, "black", nFontSize * dbRate, "left");
             strText = strText.substring(3);
         }
     } else if(nBgMode == BG_MODE_FILE) {
         // 画像ファイル描画
         context.fillStyle = 'gray'; // 描画の塗り色を決める
-        context.fillRect(0, 0, m_nAllWidth * dbRate, m_nAllHeight * dbRate);    // アスペクト比が異なる場合マスク色を描画
+        context.fillRect(0, 0, prm.nAllWidth * dbRate, prm.nAllHeight * dbRate);    // アスペクト比が異なる場合マスク色を描画
         context.globalAlpha = 1.0;
         let nNo = 1;
-        for (let x = 0; x < m_nScreenNumX; x++)
+        for (let x = 0; x < prm.nScreenNumX; x++)
         {
-            for (let y = 0; y < m_nScreenNumY; y++)
+            for (let y = 0; y < prm.nScreenNumY; y++)
             {
-                DrawBackgroundImage(context, x, y, dbRate);
+                DrawBackgroundImage(context, prm, x, y, dbRate);
                 nNo++;
             }
         }
     }
     
     // マスク描画
-    DrawMask(context, dbRate);
+    DrawMask(context, prm, dbRate);
 
     // クロスハッチ描画
     if(nBgMode == BG_MODE_CROSS) {
         let nCellSize = 60;
-        for (let x = 0; x < m_nAllWidth / nCellSize; x++)
+        for (let x = 0; x < prm.nAllWidth / nCellSize; x++)
         {
-            for (let y = 0; y < m_nAllHeight / nCellSize; y++)
+            for (let y = 0; y < prm.nAllHeight / nCellSize; y++)
             {
                 context.strokeStyle = "white";
                 context.strokeRect(x * nCellSize * dbRate, y * nCellSize * dbRate, nCellSize * dbRate, nCellSize * dbRate);
@@ -384,61 +375,63 @@ function DrawPattern(canvas, dbRate) {
     }
     
     // 中心線描画
-    DrawCenterLine(context, dbRate);
+    DrawCenterLine(context, prm, dbRate);
     // スクリーンごとのRect描画
-    DrawScreenBorder(context, dbRate);
+    DrawScreenBorder(context, prm, dbRate);
 }
 
 // スクリーン背景画像描画
-function DrawBackgroundImage(context, nXIndex, nYIndex, dbRate) {
-    let nIndex = parseInt(nYIndex * m_nScreenNumX) + nXIndex;
-    if(m_arrayIsLoadedImg[nIndex] == true) {
-        let nImgWidth = m_arrayImg[nIndex].width;
-        let nImgHeight = m_arrayImg[nIndex].height;
+function DrawBackgroundImage(context, prm, nXIndex, nYIndex, dbRate) {
+    let nIndex = parseInt(nYIndex * prm.nScreenNumX) + nXIndex;
+    if(prm.arrayIsLoadedImg[nIndex] == true) {
+        let nImgWidth = prm.arrayImg[nIndex].width;
+        let nImgHeight = prm.arrayImg[nIndex].height;
         // アスペクト比を保持して拡大
-        if(m_nWidth / m_nHeight < nImgWidth / nImgHeight) {
-            let nImgWidthFit = m_nWidth;
-            let nImgHeightFit = nImgHeight * m_nWidth / nImgWidth;
-            let nImgPosX = GetPositionX(nXIndex);
-            let nImgPosY = GetPositionY(nYIndex) + (m_nHeight - nImgHeightFit) / 2;
-            context.drawImage(m_arrayImg[nIndex], nImgPosX * dbRate, nImgPosY * dbRate, nImgWidthFit * dbRate, nImgHeightFit * dbRate);
+        if(prm.nWidth / prm.nHeight < nImgWidth / nImgHeight) {
+            let nImgWidthFit = prm.nWidth;
+            let nImgHeightFit = nImgHeight * prm.nWidth / nImgWidth;
+            let nImgPosX = GetPositionX(nXIndex, prm);
+            let nImgPosY = GetPositionY(nYIndex, prm) + (prm.nHeight - nImgHeightFit) / 2;
+            context.drawImage(prm.arrayImg[nIndex], nImgPosX * dbRate, nImgPosY * dbRate, nImgWidthFit * dbRate, nImgHeightFit * dbRate);
         } else {
-            let nImgWidthFit = nImgWidth * m_nHeight / nImgHeight;
-            let nImgHeightFit = m_nHeight;
-            let nImgPosX = GetPositionX(nXIndex) + (m_nWidth - nImgWidthFit) / 2;
-            let nImgPosY = GetPositionY(nYIndex);
-            context.drawImage(m_arrayImg[nIndex], nImgPosX * dbRate, nImgPosY * dbRate, nImgWidthFit * dbRate, nImgHeightFit * dbRate);
+            let nImgWidthFit = nImgWidth * prm.nHeight / nImgHeight;
+            let nImgHeightFit = prm.nHeight;
+            let nImgPosX = GetPositionX(nXIndex, prm) + (prm.nWidth - nImgWidthFit) / 2;
+            let nImgPosY = GetPositionY(nYIndex, prm);
+            context.drawImage(prm.arrayImg[nIndex], nImgPosX * dbRate, nImgPosY * dbRate, nImgWidthFit * dbRate, nImgHeightFit * dbRate);
         }
     }
 }
 
 // 中心線描画
-function DrawCenterLine(context, dbRate) {
+function DrawCenterLine(context, prm, dbRate) {
     // 中心線描画
     context.fillStyle = 'yellow'; // 描画の塗り色を決める
-    context.fillRect(0, m_nAllHeight * dbRate / 2 - 1, m_nAllWidth * dbRate, 2);
-    context.fillRect(m_nAllWidth * dbRate / 2 - 1 , 0, 2, m_nAllHeight * dbRate);
+    context.fillRect(0, prm.nAllHeight * dbRate / 2 - 1, prm.nAllWidth * dbRate, 2);
+    context.fillRect(prm.nAllWidth * dbRate / 2 - 1 , 0, 2, prm.nAllHeight * dbRate);
 }
 
 // スクリーンの表示範囲を描画
-function DrawScreenBorder(context, dbRate) {
+function DrawScreenBorder(context, prm, dbRate) {
     let nColorIndex = 0;
     context.lineWidth = 5 * dbRate;
-    for (let y = 0; y < m_nScreenNumY; y++)
+    context.globalAlpha = 0.9;
+
+    for (let y = 0; y < prm.nScreenNumY; y++)
     {
-        for (let x = 0; x < m_nScreenNumX; x++)
+        for (let x = 0; x < prm.nScreenNumX; x++)
         {
-            let nPosX = GetPositionX(x);
-            let nPosY = GetPositionY(y);
+            let nPosX = GetPositionX(x, prm);
+            let nPosY = GetPositionY(y, prm);
 
             context.strokeStyle = COLOR_TABLE[nColorIndex];
             //console.log("x:" + nPosX + ", y:" + nPosY);
-            context.strokeRect(nPosX * dbRate, nPosY * dbRate, m_nWidth * dbRate, m_nHeight * dbRate);
-            context.strokeRect(nPosX * dbRate, nPosY * dbRate, m_nWidth / 2 * dbRate, m_nHeight * dbRate);
+            context.strokeRect(nPosX * dbRate, nPosY * dbRate, prm.nWidth * dbRate, prm.nHeight * dbRate);
+            context.strokeRect(nPosX * dbRate, nPosY * dbRate, prm.nWidth / 2 * dbRate, prm.nHeight * dbRate);
 
             // Text
-            strText = String(x + y * m_nScreenNumX + 1);
-            DrawText(context, (nPosX + m_nWidth / 2 - 10) * dbRate, (nPosY + m_nHeight / 2 - 10) * dbRate, strText, COLOR_TABLE[nColorIndex], 250*dbRate, "right");
+            strText = String(x + y * prm.nScreenNumX + 1);
+            DrawText(context, (nPosX + prm.nWidth / 2 - 10) * dbRate, (nPosY + prm.nHeight / 2 - 10) * dbRate, strText, COLOR_TABLE[nColorIndex], 250*dbRate, "right");
             nColorIndex++;
             if (COLOR_TABLE.length <= nColorIndex)
             {
@@ -446,45 +439,47 @@ function DrawScreenBorder(context, dbRate) {
             }
         }
     }
+    context.globalAlpha = 1.0;
+
 }
 
 // マスク描画
-function DrawMask(context, dbRate) {
+function DrawMask(context, prm, dbRate) {
     context.fillStyle = 'gray'; // 描画の塗り色を決める
-    context.fillRect(0, 0, m_nMaskLeft * dbRate, m_nAllHeight * dbRate); // 左
-    context.fillRect((m_nAllWidth - m_nMaskRight )* dbRate , 0, m_nMaskRight * dbRate, m_nAllHeight * dbRate); // 右
-    context.fillRect(0, 0, m_nAllWidth * dbRate, m_nMaskTop * dbRate); // 上
-    context.fillRect(0, (m_nAllHeight - m_nMaskBottom) * dbRate, m_nAllWidth * dbRate, m_nMaskBottom * dbRate); // 下
+    context.fillRect(0, 0, prm.nMaskLeft * dbRate, prm.nAllHeight * dbRate); // 左
+    context.fillRect((prm.nAllWidth - prm.nMaskRight )* dbRate , 0, prm.nMaskRight * dbRate, prm.nAllHeight * dbRate); // 右
+    context.fillRect(0, 0, prm.nAllWidth * dbRate, prm.nMaskTop * dbRate); // 上
+    context.fillRect(0, (prm.nAllHeight - prm.nMaskBottom) * dbRate, prm.nAllWidth * dbRate, prm.nMaskBottom * dbRate); // 下
 }
 
 // 画面X位置取得
-function GetPositionX(nXIndex) {
+function GetPositionX(nXIndex, prm) {
     let nPosX = 0;
-    if (m_nScreenNumX * m_nWidth < m_nAllWidth) {
+    if (prm.nScreenNumX * prm.nWidth < prm.nAllWidth) {
         let nDiff = 0;
-        nDiff = (m_nAllWidth - m_nScreenNumX * m_nWidth) / 2;
-        nPosX = m_nWidth * nXIndex - m_nBrandingWidth * nXIndex + nDiff;
+        nDiff = (prm.nAllWidth - prm.nScreenNumX * prm.nWidth) / 2;
+        nPosX = prm.nWidth * nXIndex - prm.nBrandingWidth * nXIndex + nDiff;
     } else {
-        if (nXIndex == m_nScreenNumX - 1) {
-            nPosX = m_nAllWidth - m_nWidth;
+        if (nXIndex == prm.nScreenNumX - 1) {
+            nPosX = prm.nAllWidth - prm.nWidth;
         } else {
-            nPosX = m_nWidth * nXIndex - m_nBrandingWidth * nXIndex;
+            nPosX = prm.nWidth * nXIndex - prm.nBrandingWidth * nXIndex;
         }
     }
     return nPosX;
 }
 // 画面Y位置取得
-function GetPositionY(nYIndex) {
+function GetPositionY(nYIndex, prm) {
     let nPosY = 0; 
-    if (m_nScreenNumY * m_nHeight < m_nAllHeight) {
+    if (prm.nScreenNumY * prm.nHeight < prm.nAllHeight) {
         let nDiff = 0;
-        nDiff = (m_nAllHeight - m_nScreenNumY * m_nHeight) / 2;
-        nPosY = m_nHeight * nYIndex - m_nBrandingHeight * nYIndex + nDiff;
+        nDiff = (prm.nAllHeight - prm.nScreenNumY * prm.nHeight) / 2;
+        nPosY = prm.nHeight * nYIndex - prm.nBrandingHeight * nYIndex + nDiff;
     } else {
-        if (nYIndex == m_nScreenNumY - 1) {
-            nPosY = m_nAllHeight - m_nHeight;
+        if (nYIndex == prm.nScreenNumY - 1) {
+            nPosY = prm.nAllHeight - prm.nHeight;
         } else {
-            nPosY = m_nHeight * nYIndex - m_nBrandingHeight * nYIndex;
+            nPosY = prm.nHeight * nYIndex - prm.nBrandingHeight * nYIndex;
         }
     }
     return nPosY;
