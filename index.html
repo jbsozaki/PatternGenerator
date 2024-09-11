@@ -1,95 +1,232 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>パターン画像生成サイト</title>
-    <meta name="description" content="">
-    <link rel="icon" href="favicon.ico">
-    <link rel="stylesheet" href="./css/style.css?date=240709">
-    <script src="./js/PatternGenerator.js?date=240709"></script>
-</head>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>パターン画像生成サイト</title>
+        <meta name="description" content="" />
+        <link rel="icon" href="favicon.ico" />
+        <link rel="stylesheet" href="./css/style.css?date=240709" />
+        <script src="./js/PatternGenerator.js?date=240709"></script>
+    </head>
 
-<body>
-    <form>
-        <table>
-            <!--ファイルの読み込み　拡張子をPNG, JPEGに設定-->
-            <tr>
-                <th class="hissu"><label>横画面数</label></th>
-                <td><input id="screen-num-x" type="number" value="4" min="1"><label> 画面</label></td>
-            </tr>
-            <tr>
-                <th class="hissu"><label>縦画面数</label></th>
-                <td><input id="screen-num-y" type="number" value="1" min="1"><label> 画面</label></td>
-            </tr>
-            <tr>
-                <th class="hissu"><label>全体横幅</label></th>
-                <td><input id="all-width" type="number" value="6858" min="1"><label> pix</label></td>
-            </tr>
-            <tr>
-                <th class="hissu"><label>全体縦幅</label></th>
-                <td><input id="all-height" type="number" value="1200" min="1"><label> pix</label></td>
-            </tr>
-            <tr>
-                <th class="hissu"><label>1画面の横幅</label></th>
-                <td><input id="screen-width" type="number" value="1920" min="1"><label> pix</label></td>
-            </tr>
-            <tr>
-                <th class="hissu"><label>1画面の縦幅</label></th>
-                <td><input id="screen-height" type="number" value="1200" min="1"><label> pix</label></td>
-            </tr>
-            <tr>
-                <th class="hissu"><label>左マスク</label></th>
-                <td><input id="mask-left" type="number" value="0" min="0"><label> pix</label></td>
-                
-            </tr>
-            <tr>
-                <th class="hissu"><label>右マスク</label></th>
-                <td><input id="mask-right" type="number" value="0" min="0"><label> pix</label></td>
-            </tr>
-            <tr>
-                <th class="hissu"><label>上マスク</label></th>
-                <td><input id="mask-top" type="number" value="0" min="0"><label> pix</label></td>
-            </tr>
-            <tr>
-                <th class="hissu"><label>下マスク</label></th>
-                <td><input id="mask-bottom" type="number" value="0" min="0"><label> pix</label></td>
-            </tr>
-            <tr>
-                <th class="ninni"><label>背景</label></th>
-                <td><div>
-                    <input type="radio" id="radio-1" name="background" checked/>
-                    <label for="radio-1">クロスハッチ</label>
-                    <br>
-                    <input type="radio" id="radio-2" name="background"/>
-                    <label for="radio-2">アルファベット</label>
-                    <br>
-                    <input type="radio" id="radio-3" name="background"/>
-                    <label for="radio-3">ファイル指定</label>
-                  </div></td>
-            </tr>
-            <tr>
-                <th class="ninni"><label>背景画像ファイル</label></th>
-                <td>
-                    <div id="divSelectFile">
-                    </div>
-                </td>
-            </tr>
-        </table>
-        <input id="btn-draw" type="button" value="パターン画像生成">
-    </form> 
-    <hr>
-    <select id="select" style="display:none;">
-        <option id="opt_0">全体</option>
-        <option>プロジェクター1</option>
-    </select>
-    <input id="btn1" class="" type="button" value="ダウンロード"  style="display:none;"/>
-    <br>
-    <div>
-        <canvas id="canvas" class="canvas" width="10" height="10" style="display:none;">
-        </canvas>
-        <canvas id="canvas2" class="canvas" width="10" height="10">
-        </canvas>
-    </div>
-</body>
+    <body>
+        <form>
+            <table>
+                <!--ファイルの読み込み　拡張子をPNG, JPEGに設定-->
+                <tr>
+                    <th class="hissu"><label>横画面数</label></th>
+                    <td>
+                        <input
+                            id="screen-num-x"
+                            type="number"
+                            value="4"
+                            min="1"
+                        /><label> 画面</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="hissu"><label>縦画面数</label></th>
+                    <td>
+                        <input
+                            id="screen-num-y"
+                            type="number"
+                            value="1"
+                            min="1"
+                        /><label> 画面</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="hissu"><label>全体横幅</label></th>
+                    <td>
+                        <input
+                            id="all-width"
+                            type="number"
+                            value="6858"
+                            min="1"
+                        /><label> pix</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="hissu"><label>全体縦幅</label></th>
+                    <td>
+                        <input
+                            id="all-height"
+                            type="number"
+                            value="1200"
+                            min="1"
+                        /><label> pix</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="hissu"><label>1画面の横幅</label></th>
+                    <td>
+                        <input
+                            id="screen-width"
+                            type="number"
+                            value="1920"
+                            min="1"
+                        /><label> pix</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="hissu"><label>1画面の縦幅</label></th>
+                    <td>
+                        <input
+                            id="screen-height"
+                            type="number"
+                            value="1200"
+                            min="1"
+                        /><label> pix</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="hissu"><label>左マスク</label></th>
+                    <td>
+                        <input
+                            id="mask-left"
+                            type="number"
+                            value="0"
+                            min="0"
+                        /><label> pix</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="hissu"><label>右マスク</label></th>
+                    <td>
+                        <input
+                            id="mask-right"
+                            type="number"
+                            value="0"
+                            min="0"
+                        /><label> pix</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="hissu"><label>上マスク</label></th>
+                    <td>
+                        <input
+                            id="mask-top"
+                            type="number"
+                            value="0"
+                            min="0"
+                        /><label> pix</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="hissu"><label>下マスク</label></th>
+                    <td>
+                        <input
+                            id="mask-bottom"
+                            type="number"
+                            value="0"
+                            min="0"
+                        /><label> pix</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ninni"><label>背景</label></th>
+                    <td>
+                        <div>
+                            <input
+                                type="radio"
+                                id="radio-1"
+                                name="background"
+                                checked
+                            />
+                            <label for="radio-1">クロスハッチ</label>
+                            <br />
+                            <input
+                                type="radio"
+                                id="radio-2"
+                                name="background"
+                            />
+                            <label for="radio-2">アルファベット</label>
+                            <br />
+                            <input
+                                type="radio"
+                                id="radio-3"
+                                name="background"
+                            />
+                            <label for="radio-3">ファイル指定</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ninni"><label>背景画像ファイル</label></th>
+                    <td>
+                        <div id="divSelectFile"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <th class="ninni"><label>プロジェクタ番号</label></th>
+                    <td>
+                        <div>
+                            <input
+                                type="radio"
+                                id="vp-radio-1"
+                                name="vp"
+                                checked
+                            />
+                            <label for="vp-radio-1">表示</label>
+                            <br />
+                            <input
+                                type="radio"
+                                id="vp-radio-2"
+                                name="vp"
+                            />
+                            <label for="vp-radio-2">非表示</label>
+                        </div>
+                    </td>
+                </tr>
+                <tr></tr>
+                    <th class="ninni"><label>センターライン＋<br>ブレンディング範囲ライン</label></th>
+                    <td>
+                        <div>
+                            <input
+                                type="radio"
+                                id="line-radio-1"
+                                name="line"
+                                checked
+                            />
+                            <label for="line-radio-1">表示</label>
+                            <br />
+                            <input
+                                type="radio"
+                                id="line-radio-2"
+                                name="line"
+                            />
+                            <label for="line-radio-2">非表示</label>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <input id="btn-draw" type="button" value="パターン画像生成" />
+        </form>
+        <hr />
+        <select id="select" style="display: none">
+            <option id="opt_0">全体</option>
+            <option>プロジェクター1</option>
+        </select>
+        <input
+            id="btn1"
+            class=""
+            type="button"
+            value="ダウンロード"
+            style="display: none"
+        />
+        <br />
+        <div>
+            <canvas
+                id="canvas"
+                class="canvas"
+                width="10"
+                height="10"
+                style="display: none"
+            >
+            </canvas>
+            <canvas id="canvas2" class="canvas" width="10" height="10">
+            </canvas>
+        </div>
+    </body>
 </html>

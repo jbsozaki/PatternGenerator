@@ -1,21 +1,21 @@
-
-  /*https://csshtml.work/input-sidebyside/*/
-  form table{
+/*https://csshtml.work/input-sidebyside/*/
+form table {
     border-spacing: 0;
 }
-form td{
+form td {
     padding: 10px;
-    border-bottom: 1px solid #EEE;
+    border-bottom: 1px solid #eee;
 }
-form th{
+form th {
     padding: 15px;
-    border-bottom: 1px solid #EEE;
+    border-bottom: 1px solid #eee;
     text-align: left;
     font-weight: normal;
     vertical-align: top;
-    width: 8em;
+    /*width: 8em;*/
 }
-.hissu,.ninni{
+.hissu,
+.ninni {
     /*padding-right: 4em;*/
     position: relative;
 }
@@ -39,7 +39,8 @@ form th{
     color: #333;
 }
     */
-form input[type="text"],form textarea{
+form input[type="text"],
+form textarea {
     background: #f2f2f2;
     border: 1px solid #999;
     margin: 0 5px;
@@ -47,42 +48,48 @@ form input[type="text"],form textarea{
     padding: 5px;
     box-sizing: border-box;
 }
-.attention{
+.attention {
     display: inline-block;
 }
-.smallinput{
+.smallinput {
     width: 100px !important;
 }
-.buttonwrap{
+.buttonwrap {
     text-align: center;
     padding: 20px 0;
 }
-input[type="button"],input[type="submit"]{
-    display:inline-block;
-    background:#d13415;
-    padding:10px;
-    text-align:center;
-    color:#FFF;
-    margin:5px;
-    border:1px solid;
-    cursor:pointer;
+input[type="button"],
+input[type="submit"] {
+    display: inline-block;
+    background: #d13415;
+    padding: 10px;
+    text-align: center;
+    color: #fff;
+    margin: 5px;
+    border: 1px solid;
+    cursor: pointer;
     width: 150px;
 }
 
-@media (max-width:500px){
-    form table,form tr,form th,form td{
+@media (max-width: 500px) {
+    form table,
+    form tr,
+    form th,
+    form td {
         display: block;
     }
-    form th{
+    form th {
         width: auto;
         border-bottom: none;
         padding: 13px 10px 0 5em;
     }
-    .hissu::after,.ninni::after{
+    .hissu::after,
+    .ninni::after {
         right: auto;
         left: 15px;
     }
-    form input[type="text"],form textarea{
+    form input[type="text"],
+    form textarea {
         width: calc(100% - 10px);
     }
 }
