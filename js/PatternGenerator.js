@@ -402,7 +402,8 @@ function DrawPattern(canvas, prm, dbRate) {
         context.fillStyle = "black"; // 描画の塗り色を決める
         context.fillRect(0, 0, prm.nAllWidth * dbRate, prm.nAllHeight * dbRate);
     } else if (nBgMode == BG_MODE_WARD) {
-        context.fillStyle = "white"; // 描画の塗り色を決める
+        // アルファベット背景
+        context.fillStyle = "black"; // 描画の塗り色を決める
         context.fillRect(0, 0, prm.nAllWidth * dbRate, prm.nAllHeight * dbRate);
         let nFontSize = 48;
         let strText = ALPHABET_WORDS;
@@ -420,7 +421,7 @@ function DrawPattern(canvas, prm, dbRate) {
                 0,
                 nFontSize * dbRate * i + nFontSize * dbRate,
                 strText,
-                "black",
+                "white",
                 nFontSize * dbRate,
                 "left"
             );
@@ -462,6 +463,9 @@ function DrawPattern(canvas, prm, dbRate) {
         // 中心線描画
         DrawCenterLine(context, prm, dbRate);
     }
+
+    // マスク境界線描画
+    DrawMaskBorder(context, prm, dbRate);
 
     // スクリーンごとのRect描画
     DrawScreenBorder(context, prm, dbRate);
@@ -589,6 +593,59 @@ function DrawMask(context, prm, dbRate) {
         prm.nAllWidth * dbRate,
         prm.nMaskBottom * dbRate
     ); // 下
+}
+
+// マスク境界線描画
+function DrawMaskBorder(context, prm, dbRate) {
+    // マスク境界線描画 (マスク側でなく画像側に線が表示させるように)
+    //context.lineWidth = 5 * dbRate;
+    context.globalAlpha = 0.9;
+    context.fillStyle = "yellow"; // 描画の塗り色を決める
+    //context.strokeStyle = "yellow";
+    if (0 < prm.nMaskLeft) {
+        context.fillRect(
+            prm.nMaskLeft * dbRate,
+            prm.nMaskTop * dbRate,
+            2,
+            (prm.nAllHeight - prm.nMaskTop - prm.nMaskBottom) * dbRate
+        );
+    }
+    if (0 < prm.nMaskRight) {
+        context.fillRect(
+            (prm.nAllWidth - prm.nMaskRight) * dbRate - 2,
+            prm.nMaskTop * dbRate,
+            2,
+            (prm.nAllHeight - prm.nMaskTop - prm.nMaskBottom) * dbRate
+        );
+    }
+    if (0 < prm.nMaskTop) {
+        context.fillRect(
+            prm.nMaskLeft * dbRate,
+            prm.nMaskTop * dbRate,
+            (prm.nAllWidth - prm.nMaskLeft - prm.nMaskRight) * dbRate,
+            2
+        );
+    }
+    if (0 < prm.nMaskBottom) {
+        context.fillRect(
+            prm.nMaskLeft * dbRate,
+            (prm.nAllHeight - prm.nMaskBottom) * dbRate - 2,
+            (prm.nAllWidth - prm.nMaskLeft - prm.nMaskRight) * dbRate,
+            2
+        );
+    }
+    /*
+    context.strokeRect(
+        prm.nMaskLeft * dbRate + 1,
+        prm.nMaskTop * dbRate + 1,
+        (prm.nAllWidth - prm.nMaskLeft - prm.nMaskRight) * dbRate - 1,
+        (prm.nAllHeight - prm.nMaskTop - prm.nMaskBottom) * dbRate - 1
+    );
+    console.log(prm.nMaskLeft * dbRate + 1);
+    console.log(prm.nMaskTop * dbRate + 1);
+    console.log((prm.nAllWidth - prm.nMaskLeft - prm.nMaskRight) * dbRate - 1);
+    console.log((prm.nAllHeight - prm.nMaskTop - prm.nMaskBottom) * dbRate - 1);
+    */
 }
 
 // 画面X位置取得
