@@ -1,95 +1,697 @@
-/*https://csshtml.work/input-sidebyside/*/
-form table {
-    border-spacing: 0;
-}
-form td {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-}
-form th {
-    padding: 15px;
-    border-bottom: 1px solid #eee;
-    text-align: left;
-    font-weight: normal;
-    vertical-align: top;
-    /*width: 8em;*/
-}
-.hissu,
-.ninni {
-    /*padding-right: 4em;*/
-    position: relative;
-}
-/*
-.hissu::after,.ninni::after{
-    content: "必須";
-    display: inline-block;
-    position: absolute;
-    right: 10px;
-    top: 15px;
-    border: 1px solid #CCC;
-    padding: 0 5px;
-    font-size: 85%;
-    background: #d40000;
-    color: #FFF;
-}
-
-.ninni::after{
-    content: "任意";
-    background: #d2e5ff;
-    color: #333;
-}
-    */
-form input[type="text"],
-form textarea {
-    background: #f2f2f2;
-    border: 1px solid #999;
-    margin: 0 5px;
-    width: 300px;
-    padding: 5px;
+/* === Reset & Custom Properties === */
+*,
+*::before,
+*::after {
     box-sizing: border-box;
-}
-.attention {
-    display: inline-block;
-}
-.smallinput {
-    width: 100px !important;
-}
-.buttonwrap {
-    text-align: center;
-    padding: 20px 0;
-}
-input[type="button"],
-input[type="submit"] {
-    display: inline-block;
-    background: #d13415;
-    padding: 10px;
-    text-align: center;
-    color: #fff;
-    margin: 5px;
-    border: 1px solid;
-    cursor: pointer;
-    width: 150px;
+    margin: 0;
+    padding: 0;
 }
 
-@media (max-width: 500px) {
-    form table,
-    form tr,
-    form th,
-    form td {
-        display: block;
+:root {
+    --bg: #0F172A;
+    --panel: #1E293B;
+    --panel-hover: #243047;
+    --border: #334155;
+    --border-light: #475569;
+    --accent: #22C55E;
+    --accent-dark: #16A34A;
+    --text: #F8FAFC;
+    --text-sub: #CBD5E1;
+    --text-muted: #64748B;
+    --input-bg: #0F172A;
+    --radius: 8px;
+    --radius-sm: 5px;
+    --sidebar-w: 380px;
+    --header-h: 56px;
+    --transition: 150ms ease;
+}
+
+html,
+body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Fira Sans', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Legacy Banner
+   ============================================================ */
+.legacy-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    background: rgba(34, 197, 94, 0.08);
+    border-bottom: 1px solid rgba(34, 197, 94, 0.2);
+    padding: 7px 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.legacy-banner svg {
+    width: 13px;
+    height: 13px;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+.legacy-banner a {
+    color: var(--accent);
+    text-decoration: none;
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    transition: color var(--transition);
+}
+
+.legacy-banner a:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* ============================================================
+   App Shell
+   ============================================================ */
+.app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ============================================================
+   Header
+   ============================================================ */
+.header {
+    height: var(--header-h);
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    flex-shrink: 0;
+}
+
+.header-inner {
+    width: 100%;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.header-icon {
+    width: 22px;
+    height: 22px;
+    color: var(--accent);
+    flex-shrink: 0;
+}
+
+h1 {
+    font-family: 'Fira Code', monospace;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.3px;
+}
+
+.header-badge {
+    background: rgba(34, 197, 94, 0.1);
+    border: 1px solid rgba(34, 197, 94, 0.25);
+    color: var(--accent);
+    font-family: 'Fira Code', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 100px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+/* ============================================================
+   Main Layout
+   ============================================================ */
+.main {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+/* ============================================================
+   Settings Panel (Sidebar)
+   ============================================================ */
+.settings-panel {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.settings-panel::-webkit-scrollbar {
+    width: 4px;
+}
+
+.settings-panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.settings-panel::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 2px;
+}
+
+/* ============================================================
+   Sections
+   ============================================================ */
+.section {
+    padding: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-family: 'Fira Code', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 14px;
+}
+
+.section-title svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   Form Fields
+   ============================================================ */
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.field-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.field-inline>label {
+    font-size: 13px;
+    color: var(--text-sub);
+    flex-shrink: 0;
+    min-width: 42px;
+}
+
+/* Grouped block with sub-label */
+.field-block {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-block-label {
+    font-family: 'Fira Code', monospace;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.field-row {
+    display: flex;
+    gap: 10px;
+}
+
+.field-row .field-inline {
+    flex: 1;
+}
+
+/* ============================================================
+   Number Input + Unit
+   ============================================================ */
+.input-unit {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: border-color var(--transition);
+    background: var(--input-bg);
+}
+
+.input-unit:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.12);
+}
+
+.input-unit input[type="number"] {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    padding: 6px 8px;
+    width: 80px;
+    -moz-appearance: textfield;
+}
+
+.input-unit input[type="number"]::-webkit-outer-spin-button,
+.input-unit input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.unit {
+    background: var(--border);
+    color: var(--text-muted);
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    padding: 6px 8px;
+    white-space: nowrap;
+    user-select: none;
+    display: flex;
+    align-items: center;
+}
+
+/* ============================================================
+   Mask Grid Layout
+   ============================================================ */
+.mask-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 6px;
+    align-items: center;
+}
+
+.mask-top {
+    grid-row: 1;
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+}
+
+.mask-bottom {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+}
+
+.mask-left {
+    grid-row: 2;
+    grid-column: 1;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.mask-right {
+    grid-row: 2;
+    grid-column: 3;
+    display: flex;
+    justify-content: flex-start;
+}
+
+.mask-center-vis {
+    grid-row: 2;
+    grid-column: 2;
+    width: 48px;
+    height: 36px;
+    border: 2px dashed var(--border-light);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* マスクグリッド内のラベルとインプットをコンパクトに */
+.mask-grid .field-inline>label {
+    min-width: unset;
+    font-size: 12px;
+}
+
+.mask-grid .input-unit input[type="number"] {
+    width: 56px;
+}
+
+.mask-inner-rect {
+    width: 24px;
+    height: 18px;
+    border: 1px solid var(--border-light);
+    border-radius: 2px;
+    opacity: 0.5;
+}
+
+/* ============================================================
+   Radio Buttons
+   ============================================================ */
+.option-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.option-label {
+    font-size: 13px;
+    color: var(--text-sub);
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-left: 2px;
+}
+
+.radio-group--row {
+    flex-direction: row;
+    gap: 16px;
+}
+
+.radio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 13px;
+    transition: color var(--transition);
+    user-select: none;
+}
+
+.radio-item:hover {
+    color: var(--text-sub);
+}
+
+.radio-item input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.radio-dot {
+    width: 15px;
+    height: 15px;
+    border: 1.5px solid var(--border-light);
+    border-radius: 50%;
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color var(--transition);
+}
+
+.radio-item input[type="radio"]:checked+.radio-dot {
+    border-color: var(--accent);
+    background: var(--accent);
+}
+
+.radio-item input[type="radio"]:checked+.radio-dot::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: var(--panel);
+    border-radius: 50%;
+}
+
+.radio-item:has(input[type="radio"]:checked) {
+    color: var(--text);
+}
+
+.radio-item input[type="radio"]:focus-visible+.radio-dot {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* ============================================================
+   File Select
+   ============================================================ */
+.file-select-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.file-select-wrap input[type="file"] {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text-sub);
+    font-size: 12px;
+    padding: 6px 8px;
+    width: 100%;
+    cursor: pointer;
+    transition: border-color var(--transition);
+}
+
+.file-select-wrap input[type="file"]:not(:disabled):hover {
+    border-color: var(--border-light);
+}
+
+.file-select-wrap input[type="file"]:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.file-select-wrap input[type="file"]:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   Generate Button
+   ============================================================ */
+.generate-wrap {
+    padding: 20px;
+}
+
+#btn-draw {
+    display: block;
+    width: 100%;
+    padding: 11px 20px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    font-family: 'Fira Code', monospace;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: background var(--transition), transform var(--transition);
+}
+
+#btn-draw:hover {
+    background: var(--accent-dark);
+}
+
+#btn-draw:active {
+    transform: scale(0.99);
+}
+
+#btn-draw:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* ============================================================
+   Preview Panel
+   ============================================================ */
+.preview-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    padding: 20px;
+    gap: 14px;
+    min-width: 0;
+    background: var(--bg);
+}
+
+.preview-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.preview-toolbar .section-title {
+    margin-bottom: 0;
+}
+
+.preview-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Select */
+#select {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    padding: 7px 10px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color var(--transition);
+    min-width: 150px;
+}
+
+#select:hover,
+#select:focus {
+    border-color: var(--border-light);
+}
+
+/* Download Button */
+#btn1 {
+    background: transparent;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-sm);
+    color: var(--accent);
+    font-family: 'Fira Code', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+    white-space: nowrap;
+    width: auto;
+}
+
+#btn1:hover {
+    background: var(--accent);
+    color: #000;
+}
+
+#btn1:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+/* ============================================================
+   Canvas Area
+   ============================================================ */
+.canvas-area {
+    flex: 1;
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: auto;
+    min-height: 320px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.canvas-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.canvas-placeholder svg {
+    width: 72px;
+    height: 72px;
+    color: var(--border-light);
+    opacity: 0.5;
+}
+
+.canvas-placeholder p {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 260px;
+    line-height: 1.7;
+}
+
+.canvas {
+    display: block;
+    padding: 20px;
+}
+
+/* canvas2 starts hidden; JS shows it via SetStyleDisplay("canvas2", "block") */
+canvas#canvas2 {
+    display: none;
+    position: relative;
+    z-index: 2;
+    /* covers placeholder when shown */
+    max-width: 100%;
+    height: auto;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 860px) {
+    .main {
+        flex-direction: column;
+        overflow: visible;
     }
-    form th {
-        width: auto;
-        border-bottom: none;
-        padding: 13px 10px 0 5em;
+
+    .settings-panel {
+        width: 100%;
+        min-width: 0;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        overflow: visible;
     }
-    .hissu::after,
-    .ninni::after {
-        right: auto;
-        left: 15px;
+
+    .preview-panel {
+        padding: 16px;
     }
-    form input[type="text"],
-    form textarea {
-        width: calc(100% - 10px);
+
+    .canvas-area {
+        min-height: 240px;
+    }
+}
+
+@media (max-width: 480px) {
+    .field-row {
+        flex-direction: column;
+    }
+
+    .mask-grid {
+        grid-template-columns: 1fr 40px 1fr;
+    }
+}
+
+/* ============================================================
+   Reduced Motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
     }
 }

@@ -1,232 +1,304 @@
 <!DOCTYPE html>
 <html lang="ja">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>パターン画像生成サイト</title>
-        <meta name="description" content="" />
-        <link rel="icon" href="favicon.ico" />
-        <link rel="stylesheet" href="./css/style.css?date=240912" />
-        <script src="./js/PatternGenerator.js?date=240912"></script>
-    </head>
 
-    <body>
-        <form>
-            <table>
-                <!--ファイルの読み込み　拡張子をPNG, JPEGに設定-->
-                <tr>
-                    <th class="hissu"><label>横画面数</label></th>
-                    <td>
-                        <input
-                            id="screen-num-x"
-                            type="number"
-                            value="4"
-                            min="1"
-                        /><label> 画面</label>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="hissu"><label>縦画面数</label></th>
-                    <td>
-                        <input
-                            id="screen-num-y"
-                            type="number"
-                            value="1"
-                            min="1"
-                        /><label> 画面</label>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="hissu"><label>全体横幅</label></th>
-                    <td>
-                        <input
-                            id="all-width"
-                            type="number"
-                            value="6858"
-                            min="1"
-                        /><label> pix</label>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="hissu"><label>全体縦幅</label></th>
-                    <td>
-                        <input
-                            id="all-height"
-                            type="number"
-                            value="1200"
-                            min="1"
-                        /><label> pix</label>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="hissu"><label>1画面の横幅</label></th>
-                    <td>
-                        <input
-                            id="screen-width"
-                            type="number"
-                            value="1920"
-                            min="1"
-                        /><label> pix</label>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="hissu"><label>1画面の縦幅</label></th>
-                    <td>
-                        <input
-                            id="screen-height"
-                            type="number"
-                            value="1200"
-                            min="1"
-                        /><label> pix</label>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="hissu"><label>左マスク</label></th>
-                    <td>
-                        <input
-                            id="mask-left"
-                            type="number"
-                            value="0"
-                            min="0"
-                        /><label> pix</label>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="hissu"><label>右マスク</label></th>
-                    <td>
-                        <input
-                            id="mask-right"
-                            type="number"
-                            value="0"
-                            min="0"
-                        /><label> pix</label>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="hissu"><label>上マスク</label></th>
-                    <td>
-                        <input
-                            id="mask-top"
-                            type="number"
-                            value="0"
-                            min="0"
-                        /><label> pix</label>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="hissu"><label>下マスク</label></th>
-                    <td>
-                        <input
-                            id="mask-bottom"
-                            type="number"
-                            value="0"
-                            min="0"
-                        /><label> pix</label>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="ninni"><label>背景</label></th>
-                    <td>
-                        <div>
-                            <input
-                                type="radio"
-                                id="radio-1"
-                                name="background"
-                                checked
-                            />
-                            <label for="radio-1">クロスハッチ</label>
-                            <br />
-                            <input
-                                type="radio"
-                                id="radio-2"
-                                name="background"
-                            />
-                            <label for="radio-2">アルファベット</label>
-                            <br />
-                            <input
-                                type="radio"
-                                id="radio-3"
-                                name="background"
-                            />
-                            <label for="radio-3">ファイル指定</label>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="ninni"><label>背景画像ファイル</label></th>
-                    <td>
-                        <div id="divSelectFile"></div>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="ninni"><label>プロジェクタ番号</label></th>
-                    <td>
-                        <div>
-                            <input
-                                type="radio"
-                                id="vp-radio-1"
-                                name="vp"
-                                checked
-                            />
-                            <label for="vp-radio-1">表示</label>
-                            <br />
-                            <input
-                                type="radio"
-                                id="vp-radio-2"
-                                name="vp"
-                            />
-                            <label for="vp-radio-2">非表示</label>
-                        </div>
-                    </td>
-                </tr>
-                <tr></tr>
-                    <th class="ninni"><label>センターライン＋<br>ブレンディング範囲ライン</label></th>
-                    <td>
-                        <div>
-                            <input
-                                type="radio"
-                                id="line-radio-1"
-                                name="line"
-                                checked
-                            />
-                            <label for="line-radio-1">表示</label>
-                            <br />
-                            <input
-                                type="radio"
-                                id="line-radio-2"
-                                name="line"
-                            />
-                            <label for="line-radio-2">非表示</label>
-                        </div>
-                    </td>
-                </tr>
-            </table>
-            <input id="btn-draw" type="button" value="パターン画像生成" />
-        </form>
-        <hr />
-        <select id="select" style="display: none">
-            <option id="opt_0">全体</option>
-            <option>プロジェクター1</option>
-        </select>
-        <input
-            id="btn1"
-            class=""
-            type="button"
-            value="ダウンロード"
-            style="display: none"
-        />
-        <br />
-        <div>
-            <canvas
-                id="canvas"
-                class="canvas"
-                width="10"
-                height="10"
-                style="display: none"
-            >
-            </canvas>
-            <canvas id="canvas2" class="canvas" width="10" height="10">
-            </canvas>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>パターン画像生成</title>
+    <meta name="description" content="プロジェクタ調整用パターン画像生成ツール" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="icon" href="favicon.ico" />
+    <link rel="stylesheet" href="./css/style.css" />
+    <script src="./js/PatternGenerator.js?date=240912"></script>
+</head>
+
+<body>
+    <div class="app">
+
+        <!-- 旧バージョンバナー -->
+        <div class="legacy-banner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 8 12 12 14 14" />
+            </svg>
+            <a href="./v1/index.html">旧画面はこちら</a>
         </div>
-    </body>
+
+        <!-- ヘッダー -->
+        <header class="header">
+            <div class="header-inner">
+                <div class="header-brand">
+                    <svg class="header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        aria-hidden="true">
+                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                        <path d="M8 21h8M12 17v4" />
+                    </svg>
+                    <h1>パターン画像生成</h1>
+                    <span class="header-badge">Pattern Generater</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- メインレイアウト -->
+        <div class="main">
+
+            <!-- 設定パネル -->
+            <aside class="settings-panel">
+                <form id="settings-form">
+
+                    <!-- スクリーン構成 -->
+                    <section class="section">
+                        <h2 class="section-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                aria-hidden="true">
+                                <rect x="2" y="3" width="20" height="14" rx="2" />
+                                <path d="M8 21h8M12 17v4" />
+                                <path d="M9 3v14M15 3v14" stroke-dasharray="2 2" />
+                            </svg>
+                            スクリーン構成
+                        </h2>
+                        <div class="field-group">
+                            <div class="field-inline">
+                                <label for="screen-num-x">横画面数</label>
+                                <div class="input-unit">
+                                    <input id="screen-num-x" type="number" value="4" min="1" />
+                                    <span class="unit">画面</span>
+                                </div>
+                            </div>
+                            <div class="field-inline">
+                                <label for="screen-num-y">縦画面数</label>
+                                <div class="input-unit">
+                                    <input id="screen-num-y" type="number" value="1" min="1" />
+                                    <span class="unit">画面</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 解像度設定 -->
+                    <section class="section">
+                        <h2 class="section-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                aria-hidden="true">
+                                <path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
+                            </svg>
+                            解像度設定
+                        </h2>
+                        <div class="field-group">
+                            <div class="field-block">
+                                <span class="field-block-label">全体サイズ</span>
+                                <div class="field-row">
+                                    <div class="field-inline">
+                                        <label for="all-width">横幅</label>
+                                        <div class="input-unit">
+                                            <input id="all-width" type="number" value="6858" min="1" />
+                                            <span class="unit">px</span>
+                                        </div>
+                                    </div>
+                                    <div class="field-inline">
+                                        <label for="all-height">縦幅</label>
+                                        <div class="input-unit">
+                                            <input id="all-height" type="number" value="1200" min="1" />
+                                            <span class="unit">px</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field-block">
+                                <span class="field-block-label">1画面サイズ</span>
+                                <div class="field-row">
+                                    <div class="field-inline">
+                                        <label for="screen-width">横幅</label>
+                                        <div class="input-unit">
+                                            <input id="screen-width" type="number" value="1920" min="1" />
+                                            <span class="unit">px</span>
+                                        </div>
+                                    </div>
+                                    <div class="field-inline">
+                                        <label for="screen-height">縦幅</label>
+                                        <div class="input-unit">
+                                            <input id="screen-height" type="number" value="1200" min="1" />
+                                            <span class="unit">px</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- マスク設定 -->
+                    <section class="section">
+                        <h2 class="section-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                aria-hidden="true">
+                                <rect x="2" y="2" width="20" height="20" rx="2" />
+                                <rect x="7" y="7" width="10" height="10" />
+                            </svg>
+                            マスク設定
+                        </h2>
+                        <div class="mask-grid">
+                            <div class="mask-cell mask-top">
+                                <div class="field-inline">
+                                    <label for="mask-top">上</label>
+                                    <div class="input-unit">
+                                        <input id="mask-top" type="number" value="0" min="0" />
+                                        <span class="unit">px</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mask-cell mask-left">
+                                <div class="field-inline">
+                                    <label for="mask-left">左</label>
+                                    <div class="input-unit">
+                                        <input id="mask-left" type="number" value="0" min="0" />
+                                        <span class="unit">px</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mask-center-vis" aria-hidden="true">
+                                <div class="mask-inner-rect"></div>
+                            </div>
+                            <div class="mask-cell mask-right">
+                                <div class="field-inline">
+                                    <label for="mask-right">右</label>
+                                    <div class="input-unit">
+                                        <input id="mask-right" type="number" value="0" min="0" />
+                                        <span class="unit">px</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mask-cell mask-bottom">
+                                <div class="field-inline">
+                                    <label for="mask-bottom">下</label>
+                                    <div class="input-unit">
+                                        <input id="mask-bottom" type="number" value="0" min="0" />
+                                        <span class="unit">px</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 表示オプション -->
+                    <section class="section">
+                        <h2 class="section-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                aria-hidden="true">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                            表示オプション
+                        </h2>
+                        <div class="field-group">
+
+                            <div class="option-field">
+                                <span class="option-label">背景</span>
+                                <div class="radio-group">
+                                    <label class="radio-item">
+                                        <input type="radio" id="radio-1" name="background" checked />
+                                        <span class="radio-dot" aria-hidden="true"></span>
+                                        クロスハッチ
+                                    </label>
+                                    <label class="radio-item">
+                                        <input type="radio" id="radio-2" name="background" />
+                                        <span class="radio-dot" aria-hidden="true"></span>
+                                        アルファベット
+                                    </label>
+                                    <label class="radio-item">
+                                        <input type="radio" id="radio-3" name="background" />
+                                        <span class="radio-dot" aria-hidden="true"></span>
+                                        ファイル指定
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="option-field">
+                                <span class="option-label">背景画像ファイル</span>
+                                <div id="divSelectFile" class="file-select-wrap"></div>
+                            </div>
+
+                            <div class="option-field">
+                                <span class="option-label">プロジェクタ番号</span>
+                                <div class="radio-group radio-group--row">
+                                    <label class="radio-item">
+                                        <input type="radio" id="vp-radio-1" name="vp" checked />
+                                        <span class="radio-dot" aria-hidden="true"></span>
+                                        表示
+                                    </label>
+                                    <label class="radio-item">
+                                        <input type="radio" id="vp-radio-2" name="vp" />
+                                        <span class="radio-dot" aria-hidden="true"></span>
+                                        非表示
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="option-field">
+                                <span class="option-label">センターライン + ブレンディング範囲ライン</span>
+                                <div class="radio-group radio-group--row">
+                                    <label class="radio-item">
+                                        <input type="radio" id="line-radio-1" name="line" checked />
+                                        <span class="radio-dot" aria-hidden="true"></span>
+                                        表示
+                                    </label>
+                                    <label class="radio-item">
+                                        <input type="radio" id="line-radio-2" name="line" />
+                                        <span class="radio-dot" aria-hidden="true"></span>
+                                        非表示
+                                    </label>
+                                </div>
+                            </div>
+
+                        </div>
+                    </section>
+
+                    <!-- 生成ボタン -->
+                    <div class="generate-wrap">
+                        <input id="btn-draw" type="button" value="パターン画像生成" />
+                    </div>
+
+                </form>
+            </aside>
+
+            <!-- プレビューパネル -->
+            <section class="preview-panel" aria-label="プレビュー">
+                <div class="preview-toolbar">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <polygon points="23 7 16 12 23 17 23 7" />
+                            <rect x="1" y="5" width="15" height="14" rx="2" />
+                        </svg>
+                        プレビュー
+                    </h2>
+                    <div class="preview-actions">
+                        <select id="select" style="display: none">
+                            <option id="opt_0">全体</option>
+                            <option>プロジェクター1</option>
+                        </select>
+                        <input id="btn1" type="button" value="ダウンロード" style="display: none" />
+                    </div>
+                </div>
+                <div class="canvas-area">
+                    <div class="canvas-placeholder" id="canvas-placeholder">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+                            <rect x="2" y="3" width="20" height="14" rx="2" />
+                            <path d="M8 21h8M12 17v4" />
+                            <line x1="6" y1="7" x2="18" y2="7" stroke-dasharray="2 2" />
+                            <line x1="6" y1="10" x2="18" y2="10" stroke-dasharray="2 2" />
+                            <line x1="6" y1="13" x2="18" y2="13" stroke-dasharray="2 2" />
+                        </svg>
+                        <p>パラメータを設定して「パターン画像生成」を押してください</p>
+                    </div>
+                    <canvas id="canvas" class="canvas" width="10" height="10" style="display: none"></canvas>
+                    <canvas id="canvas2" class="canvas canvas-preview" width="10" height="10"></canvas>
+                </div>
+            </section>
+
+        </div><!-- /.main -->
+    </div><!-- /.app -->
+</body>
+
 </html>
