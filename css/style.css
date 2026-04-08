@@ -136,6 +136,24 @@ h1 {
 }
 
 /* ============================================================
+   Footer
+   ============================================================ */
+.footer {
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    padding: 12px 20px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.footer p {
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* ============================================================
    Main Layout
    ============================================================ */
 .main {
